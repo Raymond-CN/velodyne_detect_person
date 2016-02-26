@@ -21,7 +21,7 @@ class SetBackground
   protected:
     ros::NodeHandle n;
   public:
-    ros::Publisher pub = n.advertise<sensor_msgs::pointCloud2> ("scene_background", 1);
+    ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("scene_background", 1);
     ros::Subscriber sub;
 
 	void setBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
