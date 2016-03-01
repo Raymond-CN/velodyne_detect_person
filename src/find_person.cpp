@@ -15,9 +15,11 @@
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
 
-
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
+pcl::PointCloud< pcl::PointXYZ > backgroundCloudPCL;
+pcl::PointCloud< pcl::PointXYZ > clusterPCL;
+int backgroundSize = 0; //Number of points in background cloud
 
 class FindPerson
 {
@@ -27,29 +29,66 @@ class FindPerson
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("person_cloud", 1);
     ros::Subscriber subBackground;
     ros::Subscriber subClusters;
-    int backgroundSize; //Number of points in background cloud //¿is it useful?
     
     
 	//Set background cloud in a global variable. One message every X seconds
 	void findPersonBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputBackgroundCloud)
 	{
 		backgroundCloud = inputBackgroundCloud;
+		pcl::fromROSMsg(*backgroundCloud,backgroundCloudPCL);
+		backgroundSize = backgroundCloud->width;
 	}
 	
 	//Receive data and perform the actual person detection. Lots of messages every second
 	void findPersonClustersCallback(const boost::shared_ptr<velodyne_detect_person::pointCloudVector>& clusterVector)
 	{
+		if(backgroundSize == 0) {
+			std::cout << "I need a background cloud!" << std::endl;
+		}
+		else {
+		
+		//std::cout << &clusterVector.size() << std::endl;
+		//std::cout << sizeof(clusterVector)/sizeof(clusterVector[0]) << std::endl;
 		//std::cout << clusterVector.size() << std::endl;
-		//For each cluster
-		//	Store number of points in cluster
-		//	Create a counter
-		//	For each point in a cluster
-		//		Add 1 to counter if point in background 
-		//			PROBLEM: Points are very variable, we should fix a range
-		//	If counter/numberOfPointsInCluster > X
-		//		Not person
-		//	If counter/numberOfPointsInCluster < X
-		//		Person
+			
+			//For each cluster
+			for(int i = 0; i < clusterVector->pointCloudVector.size(); i++) {
+				int clusterPoints = clusterVector->pointCloudVector[i].width;
+				int numCoincidentPoints = 0;
+				pcl::fromROSMsg(clusterVector->pointCloudVector[i],clusterPCL);
+				
+				//Add 1 to counter if a point is in cluster and background
+				//TODO: Points are very variable, we should fix a range
+				for(int pointCluster = 0; pointCluster < clusterPoints; pointCluster++) {
+					for(int pointBackground = 0; pointBackground < backgroundSize; pointBackground++) {
+						if(clusterPCL.points[pointCluster].x == backgroundCloudPCL.points[pointBackground].x &&
+							clusterPCL.points[pointCluster].y == backgroundCloudPCL.points[pointBackground].y &&
+							clusterPCL.points[pointCluster].z == backgroundCloudPCL.points[pointBackground].z)
+						{
+							std::cout << backgroundCloudPCL.points[pointBackground] << std::endl;
+							std::cout << "------------------------------" << std::endl;
+							numCoincidentPoints++;
+						}
+					}				
+				}
+				
+				if(numCoincidentPoints/clusterPoints < 0.2){
+					pub.publish (clusterVector->pointCloudVector[i]);
+				}
+				//std::cout << (numCoincidentPoints/clusterPoints) << std::endl;
+				//std::cout << numCoincidentPoints << std::endl;
+				//std::cout << clusterPoints << std::endl;
+				//std::cout << "------------------------------" << std::endl;
+				
+				
+				//	If counter/numberOfPointsInCluster > X
+				//		Not person
+				//	If counter/numberOfPointsInCluster < X
+				//		Person
+			
+			}
+		
+		}
 	}
 	
 	FindPerson()
