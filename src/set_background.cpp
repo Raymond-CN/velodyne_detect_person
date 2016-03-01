@@ -16,6 +16,11 @@
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
+//Create a pointcloud which holds background points		
+//Create a pointcloud which holds background points candidates
+sensor_msgs::PointCloud2::Ptr background (new sensor_msgs::PointCloud2);
+sensor_msgs::PointCloud2::Ptr backgroundCandidates (new sensor_msgs::PointCloud2);
+
 class SetBackground
 {
   protected:
@@ -23,14 +28,12 @@ class SetBackground
   public:
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("scene_background", 1);
     ros::Subscriber sub;
+    int cont = 0;
 
 	void setBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
 	{
 
-		//Create a pointcloud which holds background points		
-		//Create a pointcloud which holds background points candidates
-		sensor_msgs::PointCloud2::Ptr background (new sensor_msgs::PointCloud2);
-		sensor_msgs::PointCloud2::Ptr backgroundCandidates (new sensor_msgs::PointCloud2);
+		
 		
 		//Create an initial 8 bits buffer for each point in inputCloud
 		//	- For every point, set buffer to [1,1,1,1,1,1,1,1] and add it to background cloud
@@ -53,7 +56,11 @@ class SetBackground
 			- Every point in the initial point cloud is background
 			- Background is not updated
 		*/
-		background = inputCloud;
+		if(cont == 0){
+			std::cout << "Fijo background" << std::endl;
+			background = inputCloud;
+			cont++;
+		}
 		pub.publish (background);
 
 	}
