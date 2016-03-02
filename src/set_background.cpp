@@ -57,11 +57,12 @@ class SetBackground
 			- Background is not updated
 		*/
 		if(cont == 0){
-			std::cout << "Fijo background" << std::endl;
+			std::cout << "Set background" << std::endl;
 			background = inputCloud;
 			cont++;
 		}
 		pub.publish (background);
+		std::cout << "Set cloud" << std::endl;
 
 	}
 	
@@ -75,10 +76,15 @@ class SetBackground
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "set_background");
+  std::cout << "Waiting for 10 seconds before taking the first background cloud, then taking a cloud every 5 seconds" << std::endl;
   sleep(10);
   SetBackground setB;
+  ros::Rate loop_rate(0.2);
 
-  ros::spin();
+  while (ros::ok()){
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
 
   return 0;
 }
