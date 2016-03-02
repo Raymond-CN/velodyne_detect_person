@@ -75,6 +75,7 @@ class SetBackground
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "set_background");
+  sleep(10);
   SetBackground setB;
 
   ros::spin();
