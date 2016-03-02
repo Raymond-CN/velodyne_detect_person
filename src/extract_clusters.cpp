@@ -54,7 +54,7 @@ class ExtractClusters
 	  std::vector<pcl::PointIndices> cluster_indices;
 	  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	  ec.setClusterTolerance (0.1);
-	  ec.setMinClusterSize (100);
+	  ec.setMinClusterSize (300);
 	  ec.setMaxClusterSize (10000);
 	  ec.setSearchMethod (tree);
 	  ec.setInputCloud (inputPclCloud);
@@ -62,8 +62,8 @@ class ExtractClusters
 	  
 	  
 	  /*Extract each cluster and store them in:
-	  		- clusterPointClouds: pointClouds vector. Each element contains a cluster.
-	  		- clustersCloud: pointcloud containing every cluster.
+	  		- clusterPointClouds: pointClouds vector. Each element contains a cluster. Not viewable
+	  		- clustersCloud: pointcloud containing every cluster. Viewable in rviz
 	  */
 	  std::vector<pcl::PointIndices>::const_iterator it;
 	  std::vector<int>::const_iterator pit;
