@@ -20,6 +20,7 @@ sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
 pcl::PointCloud< pcl::PointXYZ > backgroundCloudPCL;
 pcl::PointCloud< pcl::PointXYZ > clusterPCL;
 int backgroundSize = 0; //Number of points in background cloud
+bool backgroundGrid[100][100][30];
 
 class FindPerson
 {
@@ -36,57 +37,59 @@ class FindPerson
 	{
 		backgroundCloud = inputBackgroundCloud;
 		pcl::fromROSMsg(*backgroundCloud,backgroundCloudPCL);
-		backgroundSize = backgroundCloud->width;
+		
+		//If there is a change in background, recalculate the occupation grid
+		if(backgroundSize != backgroundCloud->width) {
+			for(int pointBackground = 0; pointBackground < backgroundCloud->width; pointBackground++) {
+		    if (-5 <= backgroundCloudPCL.points[pointBackground].x < 5 &&
+		     	-5 <= backgroundCloudPCL.points[pointBackground].y < 5 &&
+		     	-1.5 <= backgroundCloudPCL.points[pointBackground].z < 1.5)
+	     	{
+					backgroundGrid[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
+					[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
+					[int((backgroundCloudPCL.points[pointBackground].z)*10+15)] = true;
+				}	
+			}		
+		}
+		backgroundSize = backgroundCloud->width;	
 	}
+	
 	
 	//Receive data and perform the actual person detection. Lots of messages every second
 	void findPersonClustersCallback(const boost::shared_ptr<velodyne_detect_person::pointCloudVector>& clusterVector)
 	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>); //Contains every person cluster and is visible in rviz
+		pcl::PointCloud<pcl::PointXYZ> auxiliarCluster;
+		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
+	
+	
 		if(backgroundSize == 0) {
 			std::cout << "I need a background cloud!" << std::endl;
 		}
-		else {
-		
-		//std::cout << &clusterVector.size() << std::endl;
-		//std::cout << sizeof(clusterVector)/sizeof(clusterVector[0]) << std::endl;
-		//std::cout << clusterVector.size() << std::endl;
-			
+		else {		
 			//For each cluster
 			for(int i = 0; i < clusterVector->pointCloudVector.size(); i++) {
-				int clusterPoints = clusterVector->pointCloudVector[i].width;
+				int clusterPoints = clusterVector->pointCloudVector[i].width;  //cluster size
 				int numCoincidentPoints = 0;
 				pcl::fromROSMsg(clusterVector->pointCloudVector[i],clusterPCL);
 				
 				//Add 1 to counter if a point is in cluster and background
-				//TODO: Points are very variable, we should fix a range
 				for(int pointCluster = 0; pointCluster < clusterPoints; pointCluster++) {
-					for(int pointBackground = 0; pointBackground < backgroundSize; pointBackground++) {
-						if(clusterPCL.points[pointCluster].x == backgroundCloudPCL.points[pointBackground].x &&
-							clusterPCL.points[pointCluster].y == backgroundCloudPCL.points[pointBackground].y &&
-							clusterPCL.points[pointCluster].z == backgroundCloudPCL.points[pointBackground].z)
-						{
-							std::cout << backgroundCloudPCL.points[pointBackground] << std::endl;
-							std::cout << "------------------------------" << std::endl;
-							numCoincidentPoints++;
-						}
-					}				
+					if(backgroundGrid[int((clusterPCL.points[pointCluster].x)*10+50)][int((clusterPCL.points[pointCluster].y)*10+50)][int((clusterPCL.points[pointCluster].z)*10+15)] == true){
+						numCoincidentPoints++;
+					}			
 				}
-				
-				if(numCoincidentPoints/clusterPoints < 0.2){
-					pub.publish (clusterVector->pointCloudVector[i]);
+				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.2){
+					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
+					*clustersCloud += auxiliarCluster;
 				}
-				//std::cout << (numCoincidentPoints/clusterPoints) << std::endl;
-				//std::cout << numCoincidentPoints << std::endl;
-				//std::cout << clusterPoints << std::endl;
-				//std::cout << "------------------------------" << std::endl;
-				
-				
-				//	If counter/numberOfPointsInCluster > X
-				//		Not person
-				//	If counter/numberOfPointsInCluster < X
-				//		Person
 			
 			}
+			pcl::toROSMsg (*clustersCloud , *clustersCloudRos);
+	  	clustersCloudRos->header.frame_id = "/velodyne";
+	  	clustersCloudRos->header.stamp = ros::Time::now();
+			
+			pub.publish (clustersCloudRos);
 		
 		}
 	}
@@ -109,3 +112,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+
