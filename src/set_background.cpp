@@ -26,11 +26,11 @@ sensor_msgs::PointCloud2::Ptr background (new sensor_msgs::PointCloud2);
 sensor_msgs::PointCloud2::Ptr backgroundCandidates (new sensor_msgs::PointCloud2);
 pcl::PCLPointCloud2::Ptr inputCloudPCL (new pcl::PCLPointCloud2());
 pcl::PCLPointCloud2::Ptr outputCloudPCL (new pcl::PCLPointCloud2());
-pcl::PointCloud<pcl::PointXYZ>::Ptr auxCloud(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZ> auxCloud;
 
 //Create a background grid and a buffer for each grid point
-bool backgroundGrid[100][100][30];
-bool buffer[100][100][30][8];
+bool backgroundGrid[100][100][30]; //TODO: backgroundGrid must be filled with falses in the first moment
+bool buffer[100][100][30][8]; //TODO: Buffer must be filled with zeros in the first moment
 
 class SetBackground
 {
@@ -39,58 +39,60 @@ class SetBackground
   public:
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("scene_background", 1);
     ros::Subscriber sub;
-    int cont = 0;
+    int cont = 0; //TODO: Cont should be changed after first iteration
 
 	  void setBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
 	  {
-	  	//TODO: Fix voxel grid definition and publish outputCloudPCL
+	  	//Create voxel grid
 	  	pcl_conversions::toPCL(*inputCloud, *inputCloudPCL);
 	  	pcl::VoxelGrid<pcl::PCLPointCloud2> grid;
 	  	grid.setInputCloud (inputCloudPCL);
 	  	grid.setLeafSize (0.1f, 0.1f, 0.1f);
 	  	grid.filter (*outputCloudPCL);
-	  	pcl::fromPCLPointCloud2(*outputCloudPCL,*auxCloud);
-	  	pcl::toROSMsg (*auxCloud, *background);
+	  	pcl::fromPCLPointCloud2(*outputCloudPCL,auxCloud);
+	  	pcl::toROSMsg (auxCloud, *background);
 	  	
-	  	/*
-	  	//For each point in inputCloud and inside defined range (10m x 10m x 3m)
-			for(int pointBackground = 0; pointBackground < inputCloud->width; pointBackground++){
-				if (-5 <= inputCloudPCL.points[pointBackground].x < 5 &&
-	     	-5 <= inputCloudPCL.points[pointBackground].y < 5 &&
-	     	-1.5 <= inputCloudPCL.points[pointBackground].z < 1.5)
+	  	
+	  	//For each point in voxelGrid (background) and inside defined range (10m x 10m x 3m)
+			for(int pointBackground = 0; pointBackground < background->width; pointBackground++){
+				if (-5 <= auxCloud.points[pointBackground].x &&
+     			auxCloud.points[pointBackground].x < 5 &&
+	     		-5 <= auxCloud.points[pointBackground].y &&
+	     		auxCloud.points[pointBackground].y < 5 &&
+	     		-1.5 <= auxCloud.points[pointBackground].z &&
+	     		auxCloud.points[pointBackground].z < 1.5)
      		{
      			//Set closer grid point to occupied
-					backgroundGrid[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-					[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-					[int((backgroundCloudPCL.points[pointBackground].z)*10+15)] = true;
+					backgroundGrid[int((auxCloud.points[pointBackground].x)*10+50)]
+					[int((auxCloud.points[pointBackground].y)*10+50)]
+					[int((auxCloud.points[pointBackground].z)*10+15)] = true;
 					
 					//If first input cloud, set entire buffer to occupied
 					if(cont == 0){
 						for(int i = 0; i < 8; i++){
-							buffer[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].z)*10+15)][i] = true;
+							buffer[int((auxCloud.points[pointBackground].x)*10+50)]
+							[int((auxCloud.points[pointBackground].y)*10+50)]
+							[int((auxCloud.points[pointBackground].z)*10+15)][i] = true;
 						}
 					}
+					
 					//If not first input cloud, set first buffer value to occupied and shift old values
 					else{
 						for(int i = 1; i < 8; i++){
-							buffer[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].z)*10+15)][i] = 
-							buffer[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-							[int((backgroundCloudPCL.points[pointBackground].z)*10+15)][i-1];
+							buffer[int((auxCloud.points[pointBackground].x)*10+50)]
+							[int((auxCloud.points[pointBackground].y)*10+50)]
+							[int((auxCloud.points[pointBackground].z)*10+15)][i] = 
+							buffer[int((auxCloud.points[pointBackground].x)*10+50)]
+							[int((auxCloud.points[pointBackground].y)*10+50)]
+							[int((auxCloud.points[pointBackground].z)*10+15)][i-1];
 						}
-						buffer[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-						[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-						[int((backgroundCloudPCL.points[pointBackground].z)*10+15)][0] = true;	
+						buffer[int((auxCloud.points[pointBackground].x)*10+50)]
+						[int((auxCloud.points[pointBackground].y)*10+50)]
+						[int((auxCloud.points[pointBackground].z)*10+15)][0] = true;	
+						
 					}
 				}
-			}
-			*/
-
-		
+			}		
 		
 		  //Create an initial 8 bits buffer for each point in inputCloud
 		  //	- For every point, set buffer to [1,1,1,1,1,1,1,1] and add it to background cloud
@@ -135,7 +137,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "set_background");
   std::cout << "Waiting for 10 seconds before taking the first background cloud, then taking a cloud every 5 seconds" << std::endl;
-  sleep(10);
+  //sleep(10);
   SetBackground setB;
   ros::Rate loop_rate(0.2);
 
