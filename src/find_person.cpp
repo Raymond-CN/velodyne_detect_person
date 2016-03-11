@@ -15,6 +15,8 @@
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
 
+//TODO: Fix this according to set_background
+
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
 pcl::PointCloud< pcl::PointXYZ > backgroundCloudPCL;
@@ -37,21 +39,17 @@ class FindPerson
 	{
 		backgroundCloud = inputBackgroundCloud;
 		pcl::fromROSMsg(*backgroundCloud,backgroundCloudPCL);
+		backgroundSize = backgroundCloud->width;
 		
-		//If there is a change in background, recalculate the occupation grid
-		if(backgroundSize != backgroundCloud->width) {
-			for(int pointBackground = 0; pointBackground < backgroundCloud->width; pointBackground++) {
-		    if (-5 <= backgroundCloudPCL.points[pointBackground].x < 5 &&
-		     	-5 <= backgroundCloudPCL.points[pointBackground].y < 5 &&
-		     	-1.5 <= backgroundCloudPCL.points[pointBackground].z < 1.5)
-	     	{
-					backgroundGrid[int((backgroundCloudPCL.points[pointBackground].x)*10+50)]
-					[int((backgroundCloudPCL.points[pointBackground].y)*10+50)]
-					[int((backgroundCloudPCL.points[pointBackground].z)*10+15)] = true;
-				}	
-			}		
-		}
-		backgroundSize = backgroundCloud->width;	
+		
+		pcl::PointCloud<pcl::PointXYZ>::iterator it;
+		for(it = backgroundCloudPCL.points.begin(); it < backgroundCloudPCL.points.end(); it++)
+		{
+			if (-5 <= it->x && it->x < 5 && -5 <= it->y && it->y < 5 && -1.5 <= it->z && it->z < 1.5)
+     	{
+				backgroundGrid[int((it->x)*10+50)][int((it->y)*10+50)][int((it->z)*10+15)] = true;
+			}
+		}	
 	}
 	
 	
@@ -75,10 +73,19 @@ class FindPerson
 				
 				//Add 1 to counter if a point is in cluster and background
 				for(int pointCluster = 0; pointCluster < clusterPoints; pointCluster++) {
-					if(backgroundGrid[int((clusterPCL.points[pointCluster].x)*10+50)][int((clusterPCL.points[pointCluster].y)*10+50)][int((clusterPCL.points[pointCluster].z)*10+15)] == true){
-						numCoincidentPoints++;
-					}			
+					if (-5 <= clusterPCL.points[pointCluster].x &&
+				  	clusterPCL.points[pointCluster].x < 5 &&
+					  -5 <= clusterPCL.points[pointCluster].y &&
+					  clusterPCL.points[pointCluster].y < 5 &&
+					  -1.5 <= clusterPCL.points[pointCluster].z &&
+					  clusterPCL.points[pointCluster].z < 1.5)
+     			{								
+						if(backgroundGrid[int((clusterPCL.points[pointCluster].x)*10+50)][int((clusterPCL.points[pointCluster].y)*10+50)][int((clusterPCL.points[pointCluster].z)*10+15)] == true){
+							numCoincidentPoints++;
+						}	
+					}		
 				}
+				std::cout << float(float(numCoincidentPoints)/float(clusterPoints)) << std::endl;
 				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.2){
 					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
 					*clustersCloud += auxiliarCluster;
