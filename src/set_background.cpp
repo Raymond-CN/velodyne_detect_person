@@ -18,7 +18,12 @@
 #include <pcl_ros/point_cloud.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-#define GRID_SIZE 0.1;
+#define GRID_SIZE 0.1
+#define X_SIZE 100
+#define Y_SIZE 100
+#define Z_SIZE 30
+#define BUFFER_SIZE 8
+
 //Create a pointcloud which holds background points		
 //Create a pointcloud which holds background points candidates
 sensor_msgs::PointCloud2::Ptr background (new sensor_msgs::PointCloud2);
@@ -32,8 +37,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr initialBackgroundPCL(new pcl::PointCloud<pcl
 
 
 //Create a background grid and a buffer for each grid point
-bool backgroundGrid[100][100][30];
-bool buffer[100][100][30][8];
+bool backgroundGrid[X_SIZE][Y_SIZE][Z_SIZE];
+bool buffer[X_SIZE][Y_SIZE][Z_SIZE][BUFFER_SIZE];
 
 class SetBackground
 {
@@ -67,18 +72,18 @@ class SetBackground
   		publishedCloudPCL += *initialBackgroundPCL;
 	  	
 	  	//For each point in grid, suppose it's not seen and set each value to false
-	  	for(int a = 0; a < 100; a++){
-	  		for(int b = 0; b < 100; b++){
-	  			for(int c = 0; c < 30; c++){
+	  	for(int a = 0; a < X_SIZE; a++){
+	  		for(int b = 0; b < Y_SIZE; b++){
+	  			for(int c = 0; c < Z_SIZE; c++){
 	  				int bufferCont = 0;
   					if(firstTime){
-  						for(int d = 0; d < 7; d++){
+  						for(int d = 0; d < BUFFER_SIZE; d++){
   							buffer[a][b][c][d] = false;
   						}
   					}
   					else{ 
   						//Shift buffer values
-  						for(int d = 7; d > 0; d--){
+  						for(int d = BUFFER_SIZE-1; d > 0; d--){
 								buffer[a][b][c][d] = buffer[a][b][c][d-1];
 								if(buffer[a][b][c][d]){
 									bufferCont++;
@@ -113,7 +118,7 @@ class SetBackground
      		{				
 					//If first input cloud, set entire buffer to occupied
 					if(firstTime){			
-						for(int i = 0; i < 8; i++){
+						for(int i = 0; i < BUFFER_SIZE; i++){
 							buffer[int((auxCloud.points[pointBackground].x)*10+50)]
 							[int((auxCloud.points[pointBackground].y)*10+50)]
 							[int((auxCloud.points[pointBackground].z)*10+15)][i] = true;
