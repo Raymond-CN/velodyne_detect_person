@@ -26,6 +26,9 @@ sensor_msgs::PointCloud2::Ptr backgroundCandidates (new sensor_msgs::PointCloud2
 pcl::PCLPointCloud2::Ptr inputCloudPCL (new pcl::PCLPointCloud2());
 pcl::PCLPointCloud2::Ptr outputCloudPCL (new pcl::PCLPointCloud2());
 pcl::PointCloud<pcl::PointXYZ> auxCloud;
+sensor_msgs::PointCloud2::Ptr initialBackground (new sensor_msgs::PointCloud2);
+pcl::PCLPointCloud2::Ptr initialBackgroundPCL_pc2 (new pcl::PCLPointCloud2());
+pcl::PointCloud<pcl::PointXYZ>::Ptr initialBackgroundPCL(new pcl::PointCloud<pcl::PointXYZ>);
 
 
 //Create a background grid and a buffer for each grid point
@@ -55,7 +58,14 @@ class SetBackground
 	  	pcl::fromPCLPointCloud2(*outputCloudPCL,auxCloud);
 	  	pcl::toROSMsg (auxCloud, *background);
 	  	
-	  	int entro = 0;
+	  	//Add initial background cloud to prevent shadows
+	  	if(firstTime){
+	  		initialBackground = background;
+	  		pcl_conversions::toPCL(*initialBackground, *initialBackgroundPCL_pc2);
+	  		pcl::fromPCLPointCloud2(*initialBackgroundPCL_pc2,*initialBackgroundPCL);
+	  	}
+  		publishedCloudPCL += *initialBackgroundPCL;
+	  	
 	  	//For each point in grid, suppose it's not seen and set each value to false
 	  	for(int a = 0; a < 100; a++){
 	  		for(int b = 0; b < 100; b++){
