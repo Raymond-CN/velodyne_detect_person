@@ -9,6 +9,7 @@
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
 #include <pcl/common/boost.h>
+#include <pcl/common/centroid.h>
 #include <vector>
 #include <pcl_ros/point_cloud.h>
 #include "geometry_msgs/Point.h"
@@ -21,6 +22,8 @@ pcl::PointCloud< pcl::PointXYZ > backgroundCloudPCL;
 pcl::PointCloud< pcl::PointXYZ > clusterPCL;
 int backgroundSize = 0; //Number of points in background cloud
 bool backgroundGrid[100][100][30];
+Eigen::Vector4f centroid;
+geometry_msgs::Point personCentroid;
 
 class FindPerson
 {
@@ -58,6 +61,8 @@ class FindPerson
 		pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>); //Contains every person cluster and is visible in rviz
 		pcl::PointCloud<pcl::PointXYZ> auxiliarCluster;
 		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
+		personCentroid.x = 0;
+		personCentroid.y = 0;
 	
 	
 		if(backgroundSize == 0) {
@@ -84,9 +89,17 @@ class FindPerson
 						}	
 					}		
 				}
+				
+				//If cluster is not in background (coincident points < 20%), the cluster is a person
 				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.2){
 					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
 					*clustersCloud += auxiliarCluster;
+					
+					//Save the position of the last person seen. This position will be sent to the robot
+					pcl::compute3DCentroid(clusterPCL, centroid);
+					personCentroid.x = centroid(0,0);
+					personCentroid.y = centroid(1,0);
+					personCentroid.z = 0;
 				}
 			
 			}
@@ -95,6 +108,11 @@ class FindPerson
 	  	clustersCloudRos->header.stamp = ros::Time::now();
 			
 			pub.publish (clustersCloudRos);
+			
+			//Publish person position only when someone is found
+			if(personCentroid.x != 0 || personCentroid.y != 0){
+				pub2.publish (personCentroid);
+			}
 		
 		}
 	}
