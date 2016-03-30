@@ -12,6 +12,7 @@
 #include <vector>
 #include <pcl_ros/point_cloud.h>
 #include "std_msgs/String.h"
+#include "geometry_msgs/Point.h"
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
 
@@ -30,6 +31,7 @@ class FindPerson
     ros::NodeHandle n;
   public:
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("person_cloud", 1);
+    ros::Publisher pub2 = n.advertise<geometry_msgs::Point> ("person_position", 1);
     ros::Subscriber subBackground;
     ros::Subscriber subClusters;
     
