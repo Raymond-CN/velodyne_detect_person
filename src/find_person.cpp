@@ -11,12 +11,9 @@
 #include <pcl/common/boost.h>
 #include <vector>
 #include <pcl_ros/point_cloud.h>
-#include "std_msgs/String.h"
 #include "geometry_msgs/Point.h"
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
-
-//TODO: Fix this according to set_background
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
@@ -87,7 +84,6 @@ class FindPerson
 						}	
 					}		
 				}
-				std::cout << float(float(numCoincidentPoints)/float(clusterPoints)) << std::endl;
 				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.2){
 					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
 					*clustersCloud += auxiliarCluster;
