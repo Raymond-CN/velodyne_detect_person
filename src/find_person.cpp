@@ -15,6 +15,7 @@
 #include "geometry_msgs/Point.h"
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
+#include <tf/transform_listener.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
@@ -23,7 +24,25 @@ pcl::PointCloud< pcl::PointXYZ > clusterPCL;
 int backgroundSize = 0; //Number of points in background cloud
 bool backgroundGrid[100][100][30];
 Eigen::Vector4f centroid;
-geometry_msgs::Point personCentroid;
+geometry_msgs::PointStamped personCentroid;
+geometry_msgs::PointStamped personCentroidTransformed;
+
+
+void transformPersonPosition (const tf::TransformListener& listener){
+	personCentroid.header.frame_id = "velodyne";
+	personCentroid.header.stamp = ros::Time();
+	try{
+    listener.transformPoint("world", personCentroid, personCentroidTransformed);
+
+    ROS_INFO("personCentroid: (%.2f, %.2f, %.2f) -----> personCentroidTransformed: (%.2f, %.2f, %.2f)",
+     	personCentroid.point.x, personCentroid.point.y, personCentroid.point.z,
+    	personCentroidTransformed.point.x, personCentroidTransformed.point.y,
+    	personCentroidTransformed.point.z);
+  }
+  catch(tf::TransformException& ex){
+  	ROS_ERROR("Received an exception trying to transform a point from \"personCentroid\" to 		\"personCentroidTransformed\": %s", ex.what());
+  }
+}
 
 class FindPerson
 {
@@ -31,10 +50,11 @@ class FindPerson
     ros::NodeHandle n;
   public:
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("person_cloud", 1);
-    ros::Publisher pub2 = n.advertise<geometry_msgs::Point> ("person_position", 1);
+    ros::Publisher pub2 = n.advertise<geometry_msgs::PointStamped> ("person_position", 1);
     ros::Subscriber subBackground;
     ros::Subscriber subClusters;
-    
+    //tf::TransformListener listener(ros::Duration(10));
+    tf::TransformListener listener;
     
 	//Set background cloud in a global variable. One message every X seconds
 	void findPersonBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputBackgroundCloud)
@@ -61,8 +81,8 @@ class FindPerson
 		pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>); //Contains every person cluster and is visible in rviz
 		pcl::PointCloud<pcl::PointXYZ> auxiliarCluster;
 		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
-		personCentroid.x = 0;
-		personCentroid.y = 0;
+		personCentroid.point.x = 0;
+		personCentroid.point.y = 0;
 	
 	
 		if(backgroundSize == 0) {
@@ -97,9 +117,10 @@ class FindPerson
 					
 					//Save the position of the last person seen. This position will be sent to the robot
 					pcl::compute3DCentroid(clusterPCL, centroid);
-					personCentroid.x = centroid(0,0);
-					personCentroid.y = centroid(1,0);
-					personCentroid.z = 0;
+					personCentroid.point.x = centroid(0,0);
+					personCentroid.point.y = centroid(1,0);
+					personCentroid.point.z = 0;
+					personCentroid.header.stamp = ros::Time();
 				}
 			
 			}
@@ -110,7 +131,8 @@ class FindPerson
 			pub.publish (clustersCloudRos);
 			
 			//Publish person position only when someone is found
-			if(personCentroid.x != 0 || personCentroid.y != 0){
+			if(personCentroid.point.x != 0 || personCentroid.point.y != 0){
+				transformPersonPosition(listener);
 				pub2.publish (personCentroid);
 			}
 		
@@ -129,8 +151,13 @@ class FindPerson
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "find_person");
+  //ros::NodeHandle n;
+  
   FindPerson findP;
-
+  
+  //we'll transform a point once every second
+  //ros::Timer timer = n.createTimer(ros::Duration(1.0), boost::bind(&transformPoint, boost::ref(listener)));
+  
   ros::spin();
 
   return 0;
