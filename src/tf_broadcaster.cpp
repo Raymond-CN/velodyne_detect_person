@@ -13,7 +13,7 @@ int main(int argc, char** argv){
   	
   	broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.83, -4.75, 0.0)),
         ros::Time::now(),"world", "home"));
   
     broadcaster.sendTransform(
@@ -28,7 +28,7 @@ int main(int argc, char** argv){
          
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.92)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.9, 0.73, 0.92)),
         ros::Time::now(),"world", "velodyne"));
         
     r.sleep();
