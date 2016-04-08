@@ -16,6 +16,11 @@
 #include <boost/shared_ptr.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
 #include <tf/transform_listener.h>
+#include "Ice/Ice.h"
+#include "../include/PersonPosition.h"
+
+using namespace RoboCompPersonPosition;
+using namespace std;
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 sensor_msgs::PointCloud2::Ptr backgroundCloud (new sensor_msgs::PointCloud2);
@@ -26,6 +31,7 @@ bool backgroundGrid[100][100][30];
 Eigen::Vector4f centroid;
 geometry_msgs::PointStamped personCentroid;
 geometry_msgs::PointStamped personCentroidTransformed;
+MapPose detectedPersonPose; //TODO: This will probably fail. MapPose defined in .ice file or .h file
 
 
 void transformPersonPosition (const tf::TransformListener& listener){
@@ -53,8 +59,8 @@ class FindPerson
     ros::Publisher pub2 = n.advertise<geometry_msgs::PointStamped> ("person_position", 1);
     ros::Subscriber subBackground;
     ros::Subscriber subClusters;
-    //tf::TransformListener listener(ros::Duration(10));
     tf::TransformListener listener;
+    Ice::CommunicatorPtr ic;
     
 	//Set background cloud in a global variable. One message every X seconds
 	void findPersonBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputBackgroundCloud)
@@ -132,8 +138,29 @@ class FindPerson
 			
 			//Publish person position only when someone is found
 			if(personCentroid.point.x != 0 || personCentroid.point.y != 0){
+				//Transform position into world frame
 				transformPersonPosition(listener);
 				pub2.publish (personCentroid);
+				detectedPersonPose.x = personCentroid.point.x;
+				detectedPersonPose.y = personCentroid.point.y;
+				
+				
+				Ice::CommunicatorPtr ic;
+				try {
+					ic = Ice::initialize();
+					Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:default -p 10000");
+					personPositionPrx personPosition = personPositionPrx::checkedCast(base);
+					if (!personPosition)
+						throw "Invalid proxy";
+					personPosition->personPose(detectedPersonPose);
+				} catch (const Ice::Exception& ex) {
+					cerr << ex << endl;
+				} catch (const char* msg) {
+					cerr << msg << endl;
+				}
+				if (ic)
+					ic->destroy();
+				
 			}
 		
 		}
