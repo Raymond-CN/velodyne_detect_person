@@ -18,7 +18,7 @@
 // </auto-generated>
 //
 
-#include "../include/PersonPosition.h"
+#include </home/alvaro/catkin_ws/src/velodyne_detect_person/include/PersonPosition.h>
 #include <Ice/LocalException.h>
 #include <Ice/ObjectFactory.h>
 #include <Ice/BasicStream.h>
@@ -40,17 +40,17 @@
 namespace
 {
 
-const ::std::string __RoboCompPersonPosition__personPosition__personPose_name = "personPose";
+const ::std::string __RoboCompPersonPosition__PersonPosition__personPose_name = "personPose";
 
 }
 
 namespace Ice
 {
 }
-::IceProxy::Ice::Object* ::IceProxy::RoboCompPersonPosition::upCast(::IceProxy::RoboCompPersonPosition::personPosition* p) { return p; }
+::IceProxy::Ice::Object* ::IceProxy::RoboCompPersonPosition::upCast(::IceProxy::RoboCompPersonPosition::PersonPosition* p) { return p; }
 
 void
-::IceProxy::RoboCompPersonPosition::__read(::IceInternal::BasicStream* __is, ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::personPosition>& v)
+::IceProxy::RoboCompPersonPosition::__read(::IceInternal::BasicStream* __is, ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::PersonPosition>& v)
 {
     ::Ice::ObjectPrx proxy;
     __is->read(proxy);
@@ -60,15 +60,15 @@ void
     }
     else
     {
-        v = new ::IceProxy::RoboCompPersonPosition::personPosition;
+        v = new ::IceProxy::RoboCompPersonPosition::PersonPosition;
         v->__copyFrom(proxy);
     }
 }
 
 void
-IceProxy::RoboCompPersonPosition::personPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __ctx)
+IceProxy::RoboCompPersonPosition::PersonPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __ctx)
 {
-    ::IceInternal::InvocationObserver __observer(this, __RoboCompPersonPosition__personPosition__personPose_name, __ctx);
+    ::IceInternal::InvocationObserver __observer(this, __RoboCompPersonPosition__PersonPosition__personPose_name, __ctx);
     int __cnt = 0;
     while(true)
     {
@@ -76,7 +76,7 @@ IceProxy::RoboCompPersonPosition::personPosition::personPose(const ::RoboCompPer
         try
         {
             __delBase = __getDelegate(false);
-            ::IceDelegate::RoboCompPersonPosition::personPosition* __del = dynamic_cast< ::IceDelegate::RoboCompPersonPosition::personPosition*>(__delBase.get());
+            ::IceDelegate::RoboCompPersonPosition::PersonPosition* __del = dynamic_cast< ::IceDelegate::RoboCompPersonPosition::PersonPosition*>(__delBase.get());
             __del->personPose(personPosition, __ctx, __observer);
             return;
         }
@@ -92,12 +92,12 @@ IceProxy::RoboCompPersonPosition::personPosition::personPose(const ::RoboCompPer
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::RoboCompPersonPosition::personPosition::begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::RoboCompPersonPosition::PersonPosition::begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
-    ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __RoboCompPersonPosition__personPosition__personPose_name, __del, __cookie);
+    ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __RoboCompPersonPosition__PersonPosition__personPose_name, __del, __cookie);
     try
     {
-        __result->__prepare(__RoboCompPersonPosition__personPosition__personPose_name, ::Ice::Normal, __ctx);
+        __result->__prepare(__RoboCompPersonPosition__PersonPosition__personPose_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__startWriteParams(::Ice::DefaultFormat);
         __os->write(personPosition);
         __result->__endWriteParams();
@@ -111,39 +111,39 @@ IceProxy::RoboCompPersonPosition::personPosition::begin_personPose(const ::RoboC
 }
 
 void
-IceProxy::RoboCompPersonPosition::personPosition::end_personPose(const ::Ice::AsyncResultPtr& __result)
+IceProxy::RoboCompPersonPosition::PersonPosition::end_personPose(const ::Ice::AsyncResultPtr& __result)
 {
-    __end(__result, __RoboCompPersonPosition__personPosition__personPose_name);
+    __end(__result, __RoboCompPersonPosition__PersonPosition__personPose_name);
 }
 
 const ::std::string&
-IceProxy::RoboCompPersonPosition::personPosition::ice_staticId()
+IceProxy::RoboCompPersonPosition::PersonPosition::ice_staticId()
 {
-    return ::RoboCompPersonPosition::personPosition::ice_staticId();
+    return ::RoboCompPersonPosition::PersonPosition::ice_staticId();
 }
 
 ::IceInternal::Handle< ::IceDelegateM::Ice::Object>
-IceProxy::RoboCompPersonPosition::personPosition::__createDelegateM()
+IceProxy::RoboCompPersonPosition::PersonPosition::__createDelegateM()
 {
-    return ::IceInternal::Handle< ::IceDelegateM::Ice::Object>(new ::IceDelegateM::RoboCompPersonPosition::personPosition);
+    return ::IceInternal::Handle< ::IceDelegateM::Ice::Object>(new ::IceDelegateM::RoboCompPersonPosition::PersonPosition);
 }
 
 ::IceInternal::Handle< ::IceDelegateD::Ice::Object>
-IceProxy::RoboCompPersonPosition::personPosition::__createDelegateD()
+IceProxy::RoboCompPersonPosition::PersonPosition::__createDelegateD()
 {
-    return ::IceInternal::Handle< ::IceDelegateD::Ice::Object>(new ::IceDelegateD::RoboCompPersonPosition::personPosition);
+    return ::IceInternal::Handle< ::IceDelegateD::Ice::Object>(new ::IceDelegateD::RoboCompPersonPosition::PersonPosition);
 }
 
 ::IceProxy::Ice::Object*
-IceProxy::RoboCompPersonPosition::personPosition::__newInstance() const
+IceProxy::RoboCompPersonPosition::PersonPosition::__newInstance() const
 {
-    return new personPosition;
+    return new PersonPosition;
 }
 
 void
-IceDelegateM::RoboCompPersonPosition::personPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __context, ::IceInternal::InvocationObserver& __observer)
+IceDelegateM::RoboCompPersonPosition::PersonPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __context, ::IceInternal::InvocationObserver& __observer)
 {
-    ::IceInternal::Outgoing __og(__handler.get(), __RoboCompPersonPosition__personPosition__personPose_name, ::Ice::Normal, __context, __observer);
+    ::IceInternal::Outgoing __og(__handler.get(), __RoboCompPersonPosition__PersonPosition__personPose_name, ::Ice::Normal, __context, __observer);
     try
     {
         ::IceInternal::BasicStream* __os = __og.startWriteParams(::Ice::DefaultFormat);
@@ -181,7 +181,7 @@ IceDelegateM::RoboCompPersonPosition::personPosition::personPose(const ::RoboCom
 }
 
 void
-IceDelegateD::RoboCompPersonPosition::personPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __context, ::IceInternal::InvocationObserver&)
+IceDelegateD::RoboCompPersonPosition::PersonPosition::personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context* __context, ::IceInternal::InvocationObserver&)
 {
     class _DirectI : public ::IceInternal::Direct
     {
@@ -196,7 +196,7 @@ IceDelegateD::RoboCompPersonPosition::personPosition::personPose(const ::RoboCom
         virtual ::Ice::DispatchStatus
         run(::Ice::Object* object)
         {
-            ::RoboCompPersonPosition::personPosition* servant = dynamic_cast< ::RoboCompPersonPosition::personPosition*>(object);
+            ::RoboCompPersonPosition::PersonPosition* servant = dynamic_cast< ::RoboCompPersonPosition::PersonPosition*>(object);
             if(!servant)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
@@ -211,7 +211,7 @@ IceDelegateD::RoboCompPersonPosition::personPosition::personPose(const ::RoboCom
     };
     
     ::Ice::Current __current;
-    __initCurrent(__current, __RoboCompPersonPosition__personPosition__personPose_name, ::Ice::Normal, __context);
+    __initCurrent(__current, __RoboCompPersonPosition__PersonPosition__personPose_name, ::Ice::Normal, __context);
     try
     {
         _DirectI __direct(personPosition, __current);
@@ -244,44 +244,44 @@ IceDelegateD::RoboCompPersonPosition::personPosition::personPose(const ::RoboCom
     }
 }
 
-::Ice::Object* RoboCompPersonPosition::upCast(::RoboCompPersonPosition::personPosition* p) { return p; }
+::Ice::Object* RoboCompPersonPosition::upCast(::RoboCompPersonPosition::PersonPosition* p) { return p; }
 
 namespace
 {
-const ::std::string __RoboCompPersonPosition__personPosition_ids[2] =
+const ::std::string __RoboCompPersonPosition__PersonPosition_ids[2] =
 {
     "::Ice::Object",
-    "::RoboCompPersonPosition::personPosition"
+    "::RoboCompPersonPosition::PersonPosition"
 };
 
 }
 
 bool
-RoboCompPersonPosition::personPosition::ice_isA(const ::std::string& _s, const ::Ice::Current&) const
+RoboCompPersonPosition::PersonPosition::ice_isA(const ::std::string& _s, const ::Ice::Current&) const
 {
-    return ::std::binary_search(__RoboCompPersonPosition__personPosition_ids, __RoboCompPersonPosition__personPosition_ids + 2, _s);
+    return ::std::binary_search(__RoboCompPersonPosition__PersonPosition_ids, __RoboCompPersonPosition__PersonPosition_ids + 2, _s);
 }
 
 ::std::vector< ::std::string>
-RoboCompPersonPosition::personPosition::ice_ids(const ::Ice::Current&) const
+RoboCompPersonPosition::PersonPosition::ice_ids(const ::Ice::Current&) const
 {
-    return ::std::vector< ::std::string>(&__RoboCompPersonPosition__personPosition_ids[0], &__RoboCompPersonPosition__personPosition_ids[2]);
+    return ::std::vector< ::std::string>(&__RoboCompPersonPosition__PersonPosition_ids[0], &__RoboCompPersonPosition__PersonPosition_ids[2]);
 }
 
 const ::std::string&
-RoboCompPersonPosition::personPosition::ice_id(const ::Ice::Current&) const
+RoboCompPersonPosition::PersonPosition::ice_id(const ::Ice::Current&) const
 {
-    return __RoboCompPersonPosition__personPosition_ids[1];
+    return __RoboCompPersonPosition__PersonPosition_ids[1];
 }
 
 const ::std::string&
-RoboCompPersonPosition::personPosition::ice_staticId()
+RoboCompPersonPosition::PersonPosition::ice_staticId()
 {
-    return __RoboCompPersonPosition__personPosition_ids[1];
+    return __RoboCompPersonPosition__PersonPosition_ids[1];
 }
 
 ::Ice::DispatchStatus
-RoboCompPersonPosition::personPosition::___personPose(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
+RoboCompPersonPosition::PersonPosition::___personPose(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
     ::IceInternal::BasicStream* __is = __inS.startReadParams();
@@ -295,7 +295,7 @@ RoboCompPersonPosition::personPosition::___personPose(::IceInternal::Incoming& _
 
 namespace
 {
-const ::std::string __RoboCompPersonPosition__personPosition_all[] =
+const ::std::string __RoboCompPersonPosition__PersonPosition_all[] =
 {
     "ice_id",
     "ice_ids",
@@ -307,15 +307,15 @@ const ::std::string __RoboCompPersonPosition__personPosition_all[] =
 }
 
 ::Ice::DispatchStatus
-RoboCompPersonPosition::personPosition::__dispatch(::IceInternal::Incoming& in, const ::Ice::Current& current)
+RoboCompPersonPosition::PersonPosition::__dispatch(::IceInternal::Incoming& in, const ::Ice::Current& current)
 {
-    ::std::pair< const ::std::string*, const ::std::string*> r = ::std::equal_range(__RoboCompPersonPosition__personPosition_all, __RoboCompPersonPosition__personPosition_all + 5, current.operation);
+    ::std::pair< const ::std::string*, const ::std::string*> r = ::std::equal_range(__RoboCompPersonPosition__PersonPosition_all, __RoboCompPersonPosition__PersonPosition_all + 5, current.operation);
     if(r.first == r.second)
     {
         throw ::Ice::OperationNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
     }
 
-    switch(r.first - __RoboCompPersonPosition__personPosition_all)
+    switch(r.first - __RoboCompPersonPosition__PersonPosition_all)
     {
         case 0:
         {
@@ -344,25 +344,25 @@ RoboCompPersonPosition::personPosition::__dispatch(::IceInternal::Incoming& in, 
 }
 
 void
-RoboCompPersonPosition::personPosition::__writeImpl(::IceInternal::BasicStream* __os) const
+RoboCompPersonPosition::PersonPosition::__writeImpl(::IceInternal::BasicStream* __os) const
 {
     __os->startWriteSlice(ice_staticId(), -1, true);
     __os->endWriteSlice();
 }
 
 void
-RoboCompPersonPosition::personPosition::__readImpl(::IceInternal::BasicStream* __is)
+RoboCompPersonPosition::PersonPosition::__readImpl(::IceInternal::BasicStream* __is)
 {
     __is->startReadSlice();
     __is->endReadSlice();
 }
 
 void 
-RoboCompPersonPosition::__patch(personPositionPtr& handle, const ::Ice::ObjectPtr& v)
+RoboCompPersonPosition::__patch(PersonPositionPtr& handle, const ::Ice::ObjectPtr& v)
 {
-    handle = ::RoboCompPersonPosition::personPositionPtr::dynamicCast(v);
+    handle = ::RoboCompPersonPosition::PersonPositionPtr::dynamicCast(v);
     if(v && !handle)
     {
-        IceInternal::Ex::throwUOE(::RoboCompPersonPosition::personPosition::ice_staticId(), v);
+        IceInternal::Ex::throwUOE(::RoboCompPersonPosition::PersonPosition::ice_staticId(), v);
     }
 }

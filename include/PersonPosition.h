@@ -55,9 +55,9 @@ namespace IceProxy
 namespace RoboCompPersonPosition
 {
 
-class personPosition;
-void __read(::IceInternal::BasicStream*, ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::personPosition>&);
-::IceProxy::Ice::Object* upCast(::IceProxy::RoboCompPersonPosition::personPosition*);
+class PersonPosition;
+void __read(::IceInternal::BasicStream*, ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::PersonPosition>&);
+::IceProxy::Ice::Object* upCast(::IceProxy::RoboCompPersonPosition::PersonPosition*);
 
 }
 
@@ -66,13 +66,13 @@ void __read(::IceInternal::BasicStream*, ::IceInternal::ProxyHandle< ::IceProxy:
 namespace RoboCompPersonPosition
 {
 
-class personPosition;
-bool operator==(const personPosition&, const personPosition&);
-bool operator<(const personPosition&, const personPosition&);
-::Ice::Object* upCast(::RoboCompPersonPosition::personPosition*);
-typedef ::IceInternal::Handle< ::RoboCompPersonPosition::personPosition> personPositionPtr;
-typedef ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::personPosition> personPositionPrx;
-void __patch(personPositionPtr&, const ::Ice::ObjectPtr&);
+class PersonPosition;
+bool operator==(const PersonPosition&, const PersonPosition&);
+bool operator<(const PersonPosition&, const PersonPosition&);
+::Ice::Object* upCast(::RoboCompPersonPosition::PersonPosition*);
+typedef ::IceInternal::Handle< ::RoboCompPersonPosition::PersonPosition> PersonPositionPtr;
+typedef ::IceInternal::ProxyHandle< ::IceProxy::RoboCompPersonPosition::PersonPosition> PersonPositionPrx;
+void __patch(PersonPositionPtr&, const ::Ice::ObjectPtr&);
 
 }
 
@@ -122,8 +122,8 @@ struct StreamReader< ::RoboCompPersonPosition::MapPose, S>
 namespace RoboCompPersonPosition
 {
 
-class Callback_personPosition_personPose_Base : virtual public ::IceInternal::CallbackBase { };
-typedef ::IceUtil::Handle< Callback_personPosition_personPose_Base> Callback_personPosition_personPosePtr;
+class Callback_PersonPosition_personPose_Base : virtual public ::IceInternal::CallbackBase { };
+typedef ::IceUtil::Handle< Callback_PersonPosition_personPose_Base> Callback_PersonPosition_personPosePtr;
 
 }
 
@@ -133,7 +133,7 @@ namespace IceProxy
 namespace RoboCompPersonPosition
 {
 
-class personPosition : virtual public ::IceProxy::Ice::Object
+class PersonPosition : virtual public ::IceProxy::Ice::Object
 {
 public:
 
@@ -188,12 +188,12 @@ public:
         return begin_personPose(personPosition, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::RoboCompPersonPosition::Callback_personPosition_personPosePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::RoboCompPersonPosition::Callback_PersonPosition_personPosePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
         return begin_personPose(personPosition, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context& __ctx, const ::RoboCompPersonPosition::Callback_personPosition_personPosePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_personPose(const ::RoboCompPersonPosition::MapPose& personPosition, const ::Ice::Context& __ctx, const ::RoboCompPersonPosition::Callback_PersonPosition_personPosePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
         return begin_personPose(personPosition, &__ctx, __del, __cookie);
     }
@@ -207,104 +207,104 @@ private:
     
 public:
     
-    ::IceInternal::ProxyHandle<personPosition> ice_context(const ::Ice::Context& __context) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_context(const ::Ice::Context& __context) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_context(__context).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_context(__context).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_adapterId(const ::std::string& __id) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_adapterId(const ::std::string& __id) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_adapterId(__id).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_adapterId(__id).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_endpoints(const ::Ice::EndpointSeq& __endpoints) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_endpoints(const ::Ice::EndpointSeq& __endpoints) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_endpoints(__endpoints).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_endpoints(__endpoints).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_locatorCacheTimeout(int __timeout) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_locatorCacheTimeout(int __timeout) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_locatorCacheTimeout(__timeout).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_locatorCacheTimeout(__timeout).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_connectionCached(bool __cached) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_connectionCached(bool __cached) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_connectionCached(__cached).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_connectionCached(__cached).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_endpointSelection(::Ice::EndpointSelectionType __est) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_endpointSelection(::Ice::EndpointSelectionType __est) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_endpointSelection(__est).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_endpointSelection(__est).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_secure(bool __secure) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_secure(bool __secure) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_secure(__secure).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_secure(__secure).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_preferSecure(bool __preferSecure) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_preferSecure(bool __preferSecure) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_preferSecure(__preferSecure).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_preferSecure(__preferSecure).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_router(const ::Ice::RouterPrx& __router) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_router(const ::Ice::RouterPrx& __router) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_router(__router).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_router(__router).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_locator(const ::Ice::LocatorPrx& __locator) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_locator(const ::Ice::LocatorPrx& __locator) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_locator(__locator).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_locator(__locator).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_collocationOptimized(bool __co) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_collocationOptimized(bool __co) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_collocationOptimized(__co).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_collocationOptimized(__co).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_twoway() const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_twoway() const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_twoway().get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_twoway().get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_oneway() const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_oneway() const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_oneway().get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_oneway().get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_batchOneway() const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_batchOneway() const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_batchOneway().get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_batchOneway().get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_datagram() const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_datagram() const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_datagram().get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_datagram().get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_batchDatagram() const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_batchDatagram() const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_batchDatagram().get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_batchDatagram().get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_compress(bool __compress) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_compress(bool __compress) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_compress(__compress).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_compress(__compress).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_timeout(int __timeout) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_timeout(int __timeout) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_timeout(__timeout).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_timeout(__timeout).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_connectionId(const ::std::string& __id) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_connectionId(const ::std::string& __id) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_connectionId(__id).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_connectionId(__id).get());
     }
     
-    ::IceInternal::ProxyHandle<personPosition> ice_encodingVersion(const ::Ice::EncodingVersion& __v) const
+    ::IceInternal::ProxyHandle<PersonPosition> ice_encodingVersion(const ::Ice::EncodingVersion& __v) const
     {
-        return dynamic_cast<personPosition*>(::IceProxy::Ice::Object::ice_encodingVersion(__v).get());
+        return dynamic_cast<PersonPosition*>(::IceProxy::Ice::Object::ice_encodingVersion(__v).get());
     }
     
     static const ::std::string& ice_staticId();
@@ -326,7 +326,7 @@ namespace IceDelegate
 namespace RoboCompPersonPosition
 {
 
-class personPosition : virtual public ::IceDelegate::Ice::Object
+class PersonPosition : virtual public ::IceDelegate::Ice::Object
 {
 public:
 
@@ -343,7 +343,7 @@ namespace IceDelegateM
 namespace RoboCompPersonPosition
 {
 
-class personPosition : virtual public ::IceDelegate::RoboCompPersonPosition::personPosition,
+class PersonPosition : virtual public ::IceDelegate::RoboCompPersonPosition::PersonPosition,
                        virtual public ::IceDelegateM::Ice::Object
 {
 public:
@@ -361,7 +361,7 @@ namespace IceDelegateD
 namespace RoboCompPersonPosition
 {
 
-class personPosition : virtual public ::IceDelegate::RoboCompPersonPosition::personPosition,
+class PersonPosition : virtual public ::IceDelegate::RoboCompPersonPosition::PersonPosition,
                        virtual public ::IceDelegateD::Ice::Object
 {
 public:
@@ -376,12 +376,12 @@ public:
 namespace RoboCompPersonPosition
 {
 
-class personPosition : virtual public ::Ice::Object
+class PersonPosition : virtual public ::Ice::Object
 {
 public:
 
-    typedef personPositionPrx ProxyType;
-    typedef personPositionPtr PointerType;
+    typedef PersonPositionPrx ProxyType;
+    typedef PersonPositionPtr PointerType;
 
     virtual bool ice_isA(const ::std::string&, const ::Ice::Current& = ::Ice::Current()) const;
     virtual ::std::vector< ::std::string> ice_ids(const ::Ice::Current& = ::Ice::Current()) const;
@@ -402,12 +402,12 @@ protected:
     #endif
 };
 
-inline bool operator==(const personPosition& l, const personPosition& r)
+inline bool operator==(const PersonPosition& l, const PersonPosition& r)
 {
     return static_cast<const ::Ice::Object&>(l) == static_cast<const ::Ice::Object&>(r);
 }
 
-inline bool operator<(const personPosition& l, const personPosition& r)
+inline bool operator<(const PersonPosition& l, const PersonPosition& r)
 {
     return static_cast<const ::Ice::Object&>(l) < static_cast<const ::Ice::Object&>(r);
 }
@@ -418,7 +418,7 @@ namespace RoboCompPersonPosition
 {
 
 template<class T>
-class CallbackNC_personPosition_personPose : public Callback_personPosition_personPose_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_PersonPosition_personPose : public Callback_PersonPosition_personPose_Base, public ::IceInternal::OnewayCallbackNC<T>
 {
 public:
 
@@ -428,38 +428,38 @@ public:
     typedef void (T::*Sent)(bool);
     typedef void (T::*Response)();
 
-    CallbackNC_personPosition_personPose(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+    CallbackNC_PersonPosition_personPose(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
         : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
     {
     }
 };
 
-template<class T> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+template<class T> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
 {
-    return new CallbackNC_personPosition_personPose<T>(instance, cb, excb, sentcb);
+    return new CallbackNC_PersonPosition_personPose<T>(instance, cb, excb, sentcb);
 }
 
-template<class T> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+template<class T> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
 {
-    return new CallbackNC_personPosition_personPose<T>(instance, 0, excb, sentcb);
+    return new CallbackNC_PersonPosition_personPose<T>(instance, 0, excb, sentcb);
 }
 
-template<class T> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(T* instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+template<class T> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(T* instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
 {
-    return new CallbackNC_personPosition_personPose<T>(instance, cb, excb, sentcb);
+    return new CallbackNC_PersonPosition_personPose<T>(instance, cb, excb, sentcb);
 }
 
-template<class T> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(T* instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+template<class T> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(T* instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
 {
-    return new CallbackNC_personPosition_personPose<T>(instance, 0, excb, sentcb);
+    return new CallbackNC_PersonPosition_personPose<T>(instance, 0, excb, sentcb);
 }
 
 template<class T, typename CT>
-class Callback_personPosition_personPose : public Callback_personPosition_personPose_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_PersonPosition_personPose : public Callback_PersonPosition_personPose_Base, public ::IceInternal::OnewayCallback<T, CT>
 {
 public:
 
@@ -469,34 +469,34 @@ public:
     typedef void (T::*Sent)(bool , const CT&);
     typedef void (T::*Response)(const CT&);
 
-    Callback_personPosition_personPose(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+    Callback_PersonPosition_personPose(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
         : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
     {
     }
 };
 
-template<class T, typename CT> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+template<class T, typename CT> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
-    return new Callback_personPosition_personPose<T, CT>(instance, cb, excb, sentcb);
+    return new Callback_PersonPosition_personPose<T, CT>(instance, cb, excb, sentcb);
 }
 
-template<class T, typename CT> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+template<class T, typename CT> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
-    return new Callback_personPosition_personPose<T, CT>(instance, 0, excb, sentcb);
+    return new Callback_PersonPosition_personPose<T, CT>(instance, 0, excb, sentcb);
 }
 
-template<class T, typename CT> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(T* instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+template<class T, typename CT> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(T* instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
-    return new Callback_personPosition_personPose<T, CT>(instance, cb, excb, sentcb);
+    return new Callback_PersonPosition_personPose<T, CT>(instance, cb, excb, sentcb);
 }
 
-template<class T, typename CT> Callback_personPosition_personPosePtr
-newCallback_personPosition_personPose(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+template<class T, typename CT> Callback_PersonPosition_personPosePtr
+newCallback_PersonPosition_personPose(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
-    return new Callback_personPosition_personPose<T, CT>(instance, 0, excb, sentcb);
+    return new Callback_PersonPosition_personPose<T, CT>(instance, 0, excb, sentcb);
 }
 
 }
