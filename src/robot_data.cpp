@@ -15,8 +15,7 @@ public:
 
 void AriaMapInformationI::robotInformation(const mapPose& m, const Ice::Current&)
 {
-    cout << m.X << ", " << m.Y << endl;
-    cout << "madalena" << endl;
+    cout << "Robot: " << m.X << ", " << m.Y << endl;
 }
 
 void AriaMapInformationI::mapInformation(const MapInfo& mi, const Ice::Current&)
