@@ -41,9 +41,11 @@ add_definitions(${PCL_DEFINITIONS})
 
 SET(HEADERS
         "include/PersonPosition.h"
+        "include/AriaMapInformation.h"
 )
 SET(SOURCE
         "src/PersonPosition.cpp"
+        "src/AriaMapInformation.cpp"
 )
 
 add_executable(extract_clusters src/extract_clusters.cpp)
@@ -56,8 +58,12 @@ add_dependencies(set_background velodyne_detect_person_generate_messages_cpp)
 
 add_executable(find_person src/find_person.cpp ${HEADERS} ${SOURCE})
 target_link_libraries(find_person ${catkin_LIBRARIES} ${ice_lib} ${iceUtil_lib})
-add_dependencies(find_person velodyne_detect_person_generate_messages_cpp ${HEADERS} ${SOURCE})
+add_dependencies(find_person velodyne_detect_person_generate_messages_cpp)
 
 add_executable(tf_publisher src/tf_broadcaster.cpp)
 target_link_libraries(tf_publisher ${catkin_LIBRARIES})
 add_dependencies(tf_publisher velodyne_detect_person_generate_messages_cpp)
+
+add_executable(robot_data src/robot_data.cpp ${HEADERS} ${SOURCE})
+target_link_libraries(robot_data ${catkin_LIBRARIES} ${ice_lib} ${iceUtil_lib})
+add_dependencies(robot_data velodyne_detect_person_generate_messages_cpp)
