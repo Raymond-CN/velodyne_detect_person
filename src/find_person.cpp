@@ -31,7 +31,7 @@ bool backgroundGrid[100][100][30];
 Eigen::Vector4f centroid;
 geometry_msgs::PointStamped personCentroid;
 geometry_msgs::PointStamped personCentroidTransformed;
-MapPose detectedPersonPose; //TODO: This will probably fail. MapPose defined in .ice file or .h file
+MapPose detectedPersonPose;
 
 
 void transformPersonPosition (const tf::TransformListener& listener){
@@ -134,34 +134,39 @@ class FindPerson
 	  	clustersCloudRos->header.frame_id = "/velodyne";
 	  	clustersCloudRos->header.stamp = ros::Time::now();
 			
-			pub.publish (clustersCloudRos);
+			pub.publish (clustersCloudRos);		
 			
-			//Publish person position only when someone is found
-			if(personCentroid.point.x != 0 || personCentroid.point.y != 0){
-				//Transform position into world frame
-				transformPersonPosition(listener);
-				pub2.publish (personCentroid);
-				detectedPersonPose.x = personCentroid.point.x;
-				detectedPersonPose.y = personCentroid.point.y;
-				
-				
-				Ice::CommunicatorPtr ic;
-				try {
-					ic = Ice::initialize();
-					Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:default -p 10000");
-					personPositionPrx personPosition = personPositionPrx::checkedCast(base);
-					if (!personPosition)
-						throw "Invalid proxy";
-					personPosition->personPose(detectedPersonPose);
-				} catch (const Ice::Exception& ex) {
-					cerr << ex << endl;
-				} catch (const char* msg) {
-					cerr << msg << endl;
-				}
-				if (ic)
-					ic->destroy();
-				
+
+			//Transform position into world frame
+			transformPersonPosition(listener);
+			pub2.publish (personCentroid);
+			detectedPersonPose.x = personCentroidTransformed.point.x;
+			detectedPersonPose.y = personCentroidTransformed.point.y;
+			
+			//if not detected, set default control value (888)
+			if(personCentroid.point.x == 0 || personCentroid.point.y == 0){
+				detectedPersonPose.x = 888;
+				detectedPersonPose.y = 888;	
 			}
+			
+			
+			Ice::CommunicatorPtr ic;
+			try {
+				ic = Ice::initialize();
+				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 192.168.0.100 -p 10000");
+				PersonPositionPrx personPosition = PersonPositionPrx::checkedCast(base);
+				if (!personPosition)
+					throw "Invalid proxy";
+				personPosition->personPose(detectedPersonPose);
+			} catch (const Ice::Exception& ex) {
+				cerr << ex << endl;
+			} catch (const char* msg) {
+				cerr << msg << endl;
+			}
+			if (ic)
+				ic->destroy();
+			
+			
 		
 		}
 	}
