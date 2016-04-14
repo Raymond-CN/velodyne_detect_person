@@ -17,6 +17,7 @@
 #include <boost/shared_ptr.hpp>
 #include <pcl/search/impl/kdtree.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
+#include <pcl/filters/passthrough.h>
 
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -36,11 +37,21 @@ class ExtractClusters
 
 	void extractClustersCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
 	{
-	  //Convert ros PointCloud2 to pcl::PointCloud<pcl::pointXYZ>::Ptr
+	
+		//Convert ros PointCloud2 to pcl::PointCloud<pcl::pointXYZ>::Ptr
 	  pcl::PCLPointCloud2 pcl_pc2;
 	  pcl_conversions::toPCL(*inputCloud, pcl_pc2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr inputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
 	  pcl::fromPCLPointCloud2(pcl_pc2,*inputPclCloud);
+	  
+		//Filter cloud to remove floor readings
+		pcl::PointCloud<pcl::PointXYZ>::Ptr filteredInputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PassThrough<pcl::PointXYZ> pass;
+  	pass.setInputCloud (inputPclCloud);
+  	pass.setFilterFieldName ("z");
+  	pass.setFilterLimits (-0.98, -0.88);
+  	pass.setFilterLimitsNegative (true);
+  	pass.filter (*filteredInputPclCloud);	  
 	  
 	  sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -48,16 +59,16 @@ class ExtractClusters
 	    
 	  //KdTree object for the clustering search method 
 	  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-	  tree->setInputCloud (inputPclCloud);
+	  tree->setInputCloud (filteredInputPclCloud);
 	  
 	  //Perform clustering
 	  std::vector<pcl::PointIndices> cluster_indices;
 	  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	  ec.setClusterTolerance (0.1);
-	  ec.setMinClusterSize (300);
+	  ec.setClusterTolerance (0.2);
+	  ec.setMinClusterSize (50);
 	  ec.setMaxClusterSize (10000);
 	  ec.setSearchMethod (tree);
-	  ec.setInputCloud (inputPclCloud);
+	  ec.setInputCloud (filteredInputPclCloud);
 	  ec.extract (cluster_indices);
 	  
 	  
@@ -72,7 +83,7 @@ class ExtractClusters
 	  for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 		for(pit = it->indices.begin(); pit != it->indices.end(); pit++) {
-		  cloud_cluster->points.push_back(inputPclCloud->points[*pit]);    
+		  cloud_cluster->points.push_back(filteredInputPclCloud->points[*pit]);    
 		}
 		pcl::toROSMsg (*cloud_cluster , *auxiliarCluster);
 		auxiliarCluster->header.frame_id = "/velodyne";
