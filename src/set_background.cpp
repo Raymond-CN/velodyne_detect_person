@@ -16,6 +16,10 @@
 #include "std_msgs/String.h"
 #include <boost/shared_ptr.hpp>
 #include <pcl_ros/point_cloud.h>
+#include <pcl/filters/passthrough.h>
+#include <tf/transform_listener.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl_ros/transforms.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 #define GRID_SIZE 0.1
@@ -48,14 +52,34 @@ class SetBackground
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("scene_background", 1);
     ros::Subscriber sub;
     bool firstTime = true;
+    tf::TransformListener listener;
 
 	  void setBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
 	  {
 	  	sensor_msgs::PointCloud2 publishedCloud;
 	  	pcl::PointCloud<pcl::PointXYZ> publishedCloudPCL;
-	  
+	  	
+	  	//PRUEBA
+	  	pcl_ros::transformPointCloud("world", *inputCloud, *inputCloud, listener);
+	  	////////
+	  	
+	  	pcl::PCLPointCloud2 pcl_pc2;
+	  	pcl_conversions::toPCL(*inputCloud, pcl_pc2);
+	  	pcl::PointCloud<pcl::PointXYZ>::Ptr inputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
+	  	pcl::fromPCLPointCloud2(pcl_pc2,*inputPclCloud);
+	  	
+	  	
+	  	//Filter cloud to remove floor readings
+			pcl::PointCloud<pcl::PointXYZ>::Ptr filteredInputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
+			pcl::PassThrough<pcl::PointXYZ> pass;
+			pass.setInputCloud (inputPclCloud);
+			pass.setFilterFieldName ("z");
+			pass.setFilterLimits (-0.98, -0.88);
+			pass.setFilterLimitsNegative (true);
+			pass.filter (*filteredInputPclCloud);	
+			pcl::toPCLPointCloud2(*filteredInputPclCloud,*inputCloudPCL);	 
+	  	
 	  	//Create voxel grid
-	  	pcl_conversions::toPCL(*inputCloud, *inputCloudPCL);
 	  	pcl::VoxelGrid<pcl::PCLPointCloud2> grid;
 	  	grid.setInputCloud (inputCloudPCL);
 	  	grid.setLeafSize (0.01f, 0.01f, 0.01f);
