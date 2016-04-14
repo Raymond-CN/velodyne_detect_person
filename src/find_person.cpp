@@ -18,6 +18,8 @@
 #include <tf/transform_listener.h>
 #include "Ice/Ice.h"
 #include "../include/PersonPosition.h"
+#include "../include/AriaMapInformation.h"
+#include "geometry_msgs/PointStamped.h"
 
 using namespace RoboCompPersonPosition;
 using namespace std;
@@ -32,6 +34,7 @@ Eigen::Vector4f centroid;
 geometry_msgs::PointStamped personCentroid;
 geometry_msgs::PointStamped personCentroidTransformed;
 MapPose detectedPersonPose;
+geometry_msgs::PointStamped robotPose;
 
 
 void transformPersonPosition (const tf::TransformListener& listener){
@@ -50,6 +53,18 @@ void transformPersonPosition (const tf::TransformListener& listener){
   }
 }
 
+bool clusterIsRobot(float clusterX, float clusterY){
+	//If distance between robot and cluster centroid is small, cluster is robot
+	//TODO: Check if robot position has value before
+	float distance;
+	distance = sqrt(pow((clusterX - robotPose.point.x),2) + pow((clusterY - robotPose.point.y),2));
+	cout << "Distance: " << distance << endl;
+	if(distance > 1){
+		return false;
+	}
+	else return true;
+}
+
 class FindPerson
 {
   protected:
@@ -59,6 +74,7 @@ class FindPerson
     ros::Publisher pub2 = n.advertise<geometry_msgs::PointStamped> ("person_position", 1);
     ros::Subscriber subBackground;
     ros::Subscriber subClusters;
+    ros::Subscriber subRobotInfo;
     tf::TransformListener listener;
     Ice::CommunicatorPtr ic;
     
@@ -116,17 +132,20 @@ class FindPerson
 					}		
 				}
 				
-				//If cluster is not in background (coincident points < 20%), the cluster is a person
+				//If cluster is not in background (coincident points < 20%),
 				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.2){
 					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
-					*clustersCloud += auxiliarCluster;
-					
-					//Save the position of the last person seen. This position will be sent to the robot
+					*clustersCloud += auxiliarCluster;	
 					pcl::compute3DCentroid(clusterPCL, centroid);
-					personCentroid.point.x = centroid(0,0);
-					personCentroid.point.y = centroid(1,0);
-					personCentroid.point.z = 0;
-					personCentroid.header.stamp = ros::Time();
+					
+					//If cluster is not the robot, the cluster is a person
+					//Save the position of the last person seen. This position will be sent to the robot
+					if(!clusterIsRobot(centroid(0,0),centroid(1,0))){
+						personCentroid.point.x = centroid(0,0);
+						personCentroid.point.y = centroid(1,0);
+						personCentroid.point.z = 0;
+						personCentroid.header.stamp = ros::Time();
+					}
 				}
 			
 			}
@@ -171,10 +190,18 @@ class FindPerson
 		}
 	}
 	
+	//Receive robot position and stores it in a global variable
+	void findPersonRobotPositionCallback(const geometry_msgs::PointStamped& robotPosition)
+	{
+		robotPose = robotPosition;
+		
+	}
+	
 	FindPerson()
     {
       subBackground = n.subscribe("scene_background", 1, &FindPerson::findPersonBackgroundCallback, this);
       subClusters = n.subscribe("scene_clusters", 1, &FindPerson::findPersonClustersCallback, this);
+      subRobotInfo = n.subscribe("robot_position", 1, &FindPerson::findPersonRobotPositionCallback, this);
     }
 };
 
