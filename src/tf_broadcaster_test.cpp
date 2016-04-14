@@ -28,7 +28,7 @@ int main(int argc, char** argv){
          
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(-2.74, -0.866, 0.97)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.9, 0.73, 0.92)),
         ros::Time::now(),"world", "velodyne"));
         
     r.sleep();
