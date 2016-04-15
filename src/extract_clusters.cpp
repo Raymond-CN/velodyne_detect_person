@@ -44,14 +44,26 @@ class ExtractClusters
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr inputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
 	  pcl::fromPCLPointCloud2(pcl_pc2,*inputPclCloud);
 	  
-		//Filter cloud to remove floor readings
+		//Filter cloud to remove floor, ceiling and very far readings
 		pcl::PointCloud<pcl::PointXYZ>::Ptr filteredInputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PassThrough<pcl::PointXYZ> pass;
   	pass.setInputCloud (inputPclCloud);
   	pass.setFilterFieldName ("z");
   	pass.setFilterLimits (-0.98, -0.88);
   	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud);	  
+  	pass.filter (*filteredInputPclCloud);
+  	
+  	pass.setInputCloud (filteredInputPclCloud);
+  	pass.setFilterFieldName ("y");
+  	pass.setFilterLimits (-15.0, -9.0);
+  	pass.setFilterLimitsNegative (true);
+  	pass.filter (*filteredInputPclCloud);	
+  	 
+  	pass.setInputCloud (filteredInputPclCloud);
+  	pass.setFilterFieldName ("z");
+  	pass.setFilterLimits (1.5, 6.0);
+  	pass.setFilterLimitsNegative (true);
+  	pass.filter (*filteredInputPclCloud); 
 	  
 	  sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -65,8 +77,8 @@ class ExtractClusters
 	  std::vector<pcl::PointIndices> cluster_indices;
 	  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	  ec.setClusterTolerance (0.2);
-	  ec.setMinClusterSize (50);
-	  ec.setMaxClusterSize (10000);
+	  ec.setMinClusterSize (100);
+	  ec.setMaxClusterSize (15000);
 	  ec.setSearchMethod (tree);
 	  ec.setInputCloud (filteredInputPclCloud);
 	  ec.extract (cluster_indices);
