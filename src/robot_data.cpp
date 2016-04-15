@@ -9,6 +9,7 @@ using namespace std;
 
 geometry_msgs::PointStamped robotPose;
 
+
 class AriaMapInformationI : public AriaMapInformation {
 public:
 	virtual void robotInformation(const mapPose& m, const Ice::Current&);
@@ -25,10 +26,12 @@ void AriaMapInformationI::robotInformation(const mapPose& m, const Ice::Current&
     cout << "Robot in ARIA coords: " << m.X << ", " << m.Y << endl;
     
     //TODO: Not tracking rotation right now. Change idsl definition to include Th field
+    
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(robotPose.point.x, robotPose.point.y, 0.0)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.83, -4.75, 0.0)),
         ros::Time::now(),"world", "base"));
+    
 }
 
 void AriaMapInformationI::mapInformation(const MapInfo& mi, const Ice::Current&)
@@ -48,6 +51,8 @@ int main(int argc, char** argv){
   Ice::CommunicatorPtr ic;
   ros::Rate r(100);
   ros::Publisher pub = n.advertise<geometry_msgs::PointStamped> ("robot_position", 1);
+  robotPose.point.x = 0.0;
+  robotPose.point.y = 0.0;
   
 	ic = Ice::initialize(argc, argv);
 	try {      
@@ -64,7 +69,7 @@ int main(int argc, char** argv){
     }
 
   while(n.ok()){   
-  	robotPose.header.frame_id = "velodyne";
+  	robotPose.header.frame_id = "/base";
 		robotPose.header.stamp = ros::Time();
 		pub.publish(robotPose);
   	
