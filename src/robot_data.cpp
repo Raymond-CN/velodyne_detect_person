@@ -69,7 +69,7 @@ int main(int argc, char** argv){
     }
 
   while(n.ok()){   
-  	robotPose.header.frame_id = "/base";
+  	robotPose.header.frame_id = "/world";
 		robotPose.header.stamp = ros::Time();
 		pub.publish(robotPose);
   	
