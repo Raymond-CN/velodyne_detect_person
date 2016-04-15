@@ -38,7 +38,7 @@ geometry_msgs::PointStamped robotPose;
 
 
 void transformPersonPosition (const tf::TransformListener& listener){
-	personCentroid.header.frame_id = "velodyne";
+	personCentroid.header.frame_id = "/velodyne";
 	personCentroid.header.stamp = ros::Time();
 	try{
     listener.transformPoint("world", personCentroid, personCentroidTransformed);
@@ -172,7 +172,7 @@ class FindPerson
 			Ice::CommunicatorPtr ic;
 			try {
 				ic = Ice::initialize();
-				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 192.168.0.100 -p 10000");
+				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 172.19.145.165 -p 10000");
 				PersonPositionPrx personPosition = PersonPositionPrx::checkedCast(base);
 				if (!personPosition)
 					throw "Invalid proxy";
