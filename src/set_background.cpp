@@ -59,10 +59,6 @@ class SetBackground
 	  	sensor_msgs::PointCloud2 publishedCloud;
 	  	pcl::PointCloud<pcl::PointXYZ> publishedCloudPCL;
 	  	
-	  	//PRUEBA
-	  	pcl_ros::transformPointCloud("world", *inputCloud, *inputCloud, listener);
-	  	////////
-	  	
 	  	pcl::PCLPointCloud2 pcl_pc2;
 	  	pcl_conversions::toPCL(*inputCloud, pcl_pc2);
 	  	pcl::PointCloud<pcl::PointXYZ>::Ptr inputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
