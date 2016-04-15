@@ -134,14 +134,14 @@ class FindPerson
 				
 				//If cluster is not in background (coincident points < 5%),
 				if(float(float(numCoincidentPoints)/float(clusterPoints)) < 0.05){
-					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);
-					*clustersCloud += auxiliarCluster;	
+					pcl::fromROSMsg(clusterVector->pointCloudVector[i],auxiliarCluster);	
 					pcl::compute3DCentroid(clusterPCL, centroid);
 					
 					//If cluster is not the robot, the cluster is a person
 					//Save the position of the last person seen. This position will be sent to the robot
 					//TODO: Set transformation from /velodyne to /world automatically
 					if(!clusterIsRobot(centroid(0,0)-0.866,centroid(1,0)-2.74)){
+						*clustersCloud += auxiliarCluster;
 						personCentroid.point.x = centroid(0,0);
 						personCentroid.point.y = centroid(1,0);
 						personCentroid.point.z = 0;
