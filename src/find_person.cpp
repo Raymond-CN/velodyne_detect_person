@@ -42,11 +42,13 @@ void transformPersonPosition (const tf::TransformListener& listener){
 	personCentroid.header.stamp = ros::Time();
 	try{
     listener.transformPoint("world", personCentroid, personCentroidTransformed);
-
-    ROS_INFO("personCentroid: (%.2f, %.2f, %.2f) -----> personCentroidTransformed: (%.2f, %.2f, %.2f)",
-     	personCentroid.point.x, personCentroid.point.y, personCentroid.point.z,
-    	personCentroidTransformed.point.x, personCentroidTransformed.point.y,
-    	personCentroidTransformed.point.z);
+	
+	if(personCentroid.point.x != 0 || personCentroid.point.y != 0 || personCentroid.point.z != 0){
+		ROS_INFO("personCentroid: (%.2f, %.2f, %.2f) -----> personCentroidTransformed: (%.2f, %.2f, %.2f)",
+		 	personCentroid.point.x, personCentroid.point.y, personCentroid.point.z,
+			personCentroidTransformed.point.x, personCentroidTransformed.point.y,
+			personCentroidTransformed.point.z);
+	}
   }
   catch(tf::TransformException& ex){
   	ROS_ERROR("Received an exception trying to transform a point from \"personCentroid\" to 		\"personCentroidTransformed\": %s", ex.what());
@@ -173,7 +175,7 @@ class FindPerson
 			Ice::CommunicatorPtr ic;
 			try {
 				ic = Ice::initialize();
-				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 172.19.145.165 -p 10000");
+				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 161.67.100.85 -p 10000");
 				PersonPositionPrx personPosition = PersonPositionPrx::checkedCast(base);
 				if (!personPosition)
 					throw "Invalid proxy";
