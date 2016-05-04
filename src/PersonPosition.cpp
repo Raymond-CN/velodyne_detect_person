@@ -18,7 +18,7 @@
 // </auto-generated>
 //
 
-#include </home/alvaro/catkin_ws/src/velodyne_detect_person/include/PersonPosition.h>
+#include "../include/PersonPosition.h"
 #include <Ice/LocalException.h>
 #include <Ice/ObjectFactory.h>
 #include <Ice/BasicStream.h>
