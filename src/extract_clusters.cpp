@@ -55,13 +55,19 @@ class ExtractClusters
   	
   	pass.setInputCloud (filteredInputPclCloud);
   	pass.setFilterFieldName ("y");
-  	pass.setFilterLimits (-15.0, -9.0);
+  	pass.setFilterLimits (-20.0, -6.0);
   	pass.setFilterLimitsNegative (true);
   	pass.filter (*filteredInputPclCloud);	
   	 
   	pass.setInputCloud (filteredInputPclCloud);
   	pass.setFilterFieldName ("z");
   	pass.setFilterLimits (1.5, 6.0);
+  	pass.setFilterLimitsNegative (true);
+  	pass.filter (*filteredInputPclCloud); 
+  	
+  	pass.setInputCloud (filteredInputPclCloud);
+  	pass.setFilterFieldName ("x");
+  	pass.setFilterLimits (-3.0, -1.2);
   	pass.setFilterLimitsNegative (true);
   	pass.filter (*filteredInputPclCloud); 
 	  
