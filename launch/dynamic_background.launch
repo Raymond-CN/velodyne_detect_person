@@ -1,6 +1,6 @@
 <launch>
     <node pkg="velodyne_detect_person" type="set_background" name="set_background"/>
-	<node pkg="velodyne_detect_person" type="extract_clusters" name="extract_clusters"/>
+	<node pkg="velodyne_detect_person" type="extract_clusters" name="extract_clusters" output="screen"/>
 	<node pkg="velodyne_detect_person" type="find_person" name="find_person"/>
 	<node pkg="velodyne_detect_person" type="tf_publisher" name="tf_publisher"/>
 	<node pkg="velodyne_detect_person" type="robot_data" name="robot_data"/>
