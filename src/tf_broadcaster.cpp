@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
+#include <math.h>
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "tf_publisher");
@@ -13,7 +14,7 @@ int main(int argc, char** argv){
   	
   	broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.83, -4.75, 0.0)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
         ros::Time::now(),"world", "home"));
   
     broadcaster.sendTransform(
@@ -28,7 +29,7 @@ int main(int argc, char** argv){
          
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(-0.866, -2.74, 0.97)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(-0.16, 1.78, 0.873)),
         ros::Time::now(),"world", "velodyne"));
         
     r.sleep();
