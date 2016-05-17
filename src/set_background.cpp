@@ -70,7 +70,7 @@ class SetBackground
 			pcl::PassThrough<pcl::PointXYZ> pass;
 			pass.setInputCloud (inputPclCloud);
 			pass.setFilterFieldName ("z");
-			pass.setFilterLimits (-0.98, -0.88);
+			pass.setFilterLimits (-1.0, -0.85);
 			pass.setFilterLimitsNegative (true);
 			pass.filter (*filteredInputPclCloud);	
 			pcl::toPCLPointCloud2(*filteredInputPclCloud,*inputCloudPCL);	 
