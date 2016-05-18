@@ -92,7 +92,7 @@ class ExtractClusters
 	  tree->setInputCloud (filteredInputPclCloud);
 	  
 	  //Perform clustering
-	  
+	  ros::Time begin_clustering = ros::Time::now ();
 	  //Object for storing the normals.
 		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
 		
@@ -120,6 +120,9 @@ class ExtractClusters
 	 
 		std::vector<pcl::PointIndices> cluster_indices;
 		clustering.extract(cluster_indices);
+
+		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
+		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
 		
 		// For every cluster...
 		int currentClusterNum = 1;
