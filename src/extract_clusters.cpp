@@ -18,6 +18,8 @@
 #include <pcl/search/impl/kdtree.hpp>
 #include "velodyne_detect_person/pointCloudVector.h"
 #include <pcl/filters/passthrough.h>
+#include <pcl/segmentation/region_growing.h>
+#include <pcl/features/normal_3d.h>
 
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -30,8 +32,8 @@ class ExtractClusters
 {
   protected:
     ros::NodeHandle n;
-ros::Time begin;
-int n_published_msgs;
+		ros::Time begin;
+		int n_published_msgs;
   public:
     ros::Publisher pub = n.advertise<velodyne_detect_person::pointCloudVector> ("scene_clusters", 1);
     ros::Publisher pub2 = n.advertise<sensor_msgs::PointCloud2> ("clustersCloud", 1);
@@ -55,7 +57,7 @@ int n_published_msgs;
   	pass.setFilterLimitsNegative (true);
   	pass.filter (*filteredInputPclCloud);*/
 
-        pass.setInputCloud (inputPclCloud);
+    pass.setInputCloud (inputPclCloud);
   	pass.setFilterFieldName ("z");
   	pass.setFilterLimits (-0.85, 1.5);
   	pass.setFilterLimitsNegative (false);
@@ -90,6 +92,37 @@ int n_published_msgs;
 	  tree->setInputCloud (filteredInputPclCloud);
 	  
 	  //Perform clustering
+	  
+	  //Object for storing the normals.
+		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+		
+		//Estimate the normals.		
+		pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
+		normalEstimation.setInputCloud(filteredInputPclCloud);
+		normalEstimation.setRadiusSearch(0.03);
+		normalEstimation.setSearchMethod(tree);
+		normalEstimation.compute(*normals);
+	 
+		// Region growing clustering object.
+		pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> clustering;
+		clustering.setMinClusterSize(100);
+		clustering.setMaxClusterSize(10000);
+		clustering.setSearchMethod(tree);
+		clustering.setNumberOfNeighbours(30);
+		clustering.setInputCloud(filteredInputPclCloud);
+		clustering.setInputNormals(normals);
+		// Set the angle in radians that will be the smoothness threshold
+		// (the maximum allowable deviation of the normals).
+		clustering.setSmoothnessThreshold(7.0 / 180.0 * M_PI); // 7 degrees.
+		// Set the curvature threshold. The disparity between curvatures will be
+		// tested after the normal deviation check has passed.
+		clustering.setCurvatureThreshold(1.0);
+	 
+		std::vector<pcl::PointIndices> cluster_indices;
+		clustering.extract(cluster_indices);
+	  
+	  
+	  /*
 	  std::vector<pcl::PointIndices> cluster_indices;
 	  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	  ec.setClusterTolerance (0.2);
@@ -97,10 +130,13 @@ int n_published_msgs;
 	  ec.setMaxClusterSize (15000);
 	  ec.setSearchMethod (tree);
 	  ec.setInputCloud (filteredInputPclCloud);
-ros::Time begin_clustering = ros::Time::now ();
+		ros::Time begin_clustering = ros::Time::now ();
 	  ec.extract (cluster_indices);
-double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
-ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
+		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
+		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
+	  */
+	  
+	  
 	  
 	  /*Extract each cluster and store them in:
 	  		- clusterPointClouds: pointClouds vector. Each element contains a cluster. Not viewable
@@ -130,17 +166,17 @@ ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluste
 	  
 	  pub.publish (clusterPointClouds);
 	  pub2.publish (*clustersCloudRos);
-n_published_msgs++;
-double elapsed_time = (ros::Time::now () - begin).toSec ();
-ROS_INFO("Cluster publish freq: %f msgs/s - %d msgs in %f secs.", (float) n_published_msgs / elapsed_time, n_published_msgs, elapsed_time);
+		n_published_msgs++;
+		double elapsed_time = (ros::Time::now () - begin).toSec ();
+		ROS_INFO("Cluster publish freq: %f msgs/s - %d msgs in %f secs.", (float) n_published_msgs / elapsed_time, n_published_msgs, elapsed_time);
 
 	}
 	
 	ExtractClusters()
     {
       sub = n.subscribe("velodyne_points", 1, &ExtractClusters::extractClustersCallback, this);
-begin = ros::Time::now();
-n_published_msgs = 0;
+			begin = ros::Time::now();
+			n_published_msgs = 0;
     }
 };
 	
