@@ -120,6 +120,28 @@ class ExtractClusters
 	 
 		std::vector<pcl::PointIndices> cluster_indices;
 		clustering.extract(cluster_indices);
+		
+		// For every cluster...
+		int currentClusterNum = 1;
+		for (std::vector<pcl::PointIndices>::const_iterator i = cluster_indices.begin(); i != cluster_indices.end(); ++i)
+		{
+			// ...add all its points to a new cloud...
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZ>);
+			for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
+				cluster->points.push_back(filteredInputPclCloud->points[*point]);
+			cluster->width = cluster->points.size();
+			cluster->height = 1;
+			cluster->is_dense = true;
+	 
+			// ...and save it to disk.
+			if (cluster->points.size() <= 0)
+				break;
+			std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
+			std::string fileName = "cluster" + boost::to_string(currentClusterNum) + ".pcd";
+			pcl::io::savePCDFileASCII(fileName, *cluster);
+	 
+			currentClusterNum++;
+		}
 	  
 	  
 	  /*
