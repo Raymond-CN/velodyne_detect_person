@@ -26,7 +26,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 #define X_SIZE 100
 #define Y_SIZE 100
 #define Z_SIZE 30
-#define BUFFER_SIZE 8
+#define BUFFER_SIZE 30
 
 //Create a pointcloud which holds background points		
 //Create a pointcloud which holds background points candidates
@@ -56,6 +56,7 @@ class SetBackground
 
 	  void setBackgroundCallback(const boost::shared_ptr<sensor_msgs::PointCloud2>& inputCloud)
 	  {
+			
 	  	sensor_msgs::PointCloud2 publishedCloud;
 	  	pcl::PointCloud<pcl::PointXYZ> publishedCloudPCL;
 	  	
@@ -113,7 +114,7 @@ class SetBackground
 							
 							//If half or more of the buffer is true, then point is in background							
 							//TODO: bufferCount doesn't know the last point value (always set to 0)
-  						if(bufferCont > 3){
+  						if(bufferCont > BUFFER_SIZE/3){
   							publishedCloudPCL.insert(
   								publishedCloudPCL.end(), pcl::PointXYZ(
   									(((float)a-50.0)/10.0),
@@ -176,12 +177,15 @@ int main(int argc, char **argv)
   std::cout << "Waiting for 10 seconds before taking the first background cloud, then taking a cloud every 5 seconds" << std::endl;
   sleep(10);
   SetBackground setB;
+	ros::spin();
+/*
   ros::Rate loop_rate(1);
 
   while (ros::ok()){
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+*/
 
   return 0;
 }
