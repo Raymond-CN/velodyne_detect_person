@@ -51,11 +51,6 @@ class ExtractClusters
 		//Filter cloud to remove floor, ceiling and very far readings (velodyne frame)
 		pcl::PointCloud<pcl::PointXYZ>::Ptr filteredInputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PassThrough<pcl::PointXYZ> pass;
- /* 	pass.setInputCloud (inputPclCloud);
-  	pass.setFilterFieldName ("z");
-  	pass.setFilterLimits (-1.00, -0.85);
-  	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud);*/
 
     pass.setInputCloud (inputPclCloud);
   	pass.setFilterFieldName ("z");
@@ -67,21 +62,7 @@ class ExtractClusters
   	pass.setFilterFieldName ("x");
   	pass.setFilterLimits (5.0, 20.0);
   	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud);	
-  	 
- /* 	pass.setInputCloud (filteredInputPclCloud);
-  	pass.setFilterFieldName ("z");
-  	pass.setFilterLimits (1.5, 6.0);
-  	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud); */
-  	
-		/*
-  	pass.setInputCloud (filteredInputPclCloud);
-  	pass.setFilterFieldName ("x");
-  	pass.setFilterLimits (-3.0, -1.2);
-  	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud); 
-		*/
+  	pass.filter (*filteredInputPclCloud);
 	  
 	  sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -123,44 +104,6 @@ class ExtractClusters
 
 		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
 		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
-		
-		// For every cluster...
-		int currentClusterNum = 1;
-		for (std::vector<pcl::PointIndices>::const_iterator i = cluster_indices.begin(); i != cluster_indices.end(); ++i)
-		{
-			// ...add all its points to a new cloud...
-			pcl::PointCloud<pcl::PointXYZ>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZ>);
-			for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
-				cluster->points.push_back(filteredInputPclCloud->points[*point]);
-			cluster->width = cluster->points.size();
-			cluster->height = 1;
-			cluster->is_dense = true;
-	 
-			// ...and save it to disk.
-			if (cluster->points.size() <= 0)
-				break;
-			std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
-			std::string fileName = "cluster" + boost::to_string(currentClusterNum) + ".pcd";
-			pcl::io::savePCDFileASCII(fileName, *cluster);
-	 
-			currentClusterNum++;
-		}
-	  
-	  
-	  /*
-	  std::vector<pcl::PointIndices> cluster_indices;
-	  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	  ec.setClusterTolerance (0.2);
-	  ec.setMinClusterSize (100);
-	  ec.setMaxClusterSize (15000);
-	  ec.setSearchMethod (tree);
-	  ec.setInputCloud (filteredInputPclCloud);
-		ros::Time begin_clustering = ros::Time::now ();
-	  ec.extract (cluster_indices);
-		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
-		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
-	  */
-	  
 	  
 	  
 	  /*Extract each cluster and store them in:
@@ -168,21 +111,16 @@ class ExtractClusters
 	  		- clustersCloud: pointcloud containing every cluster. Viewable in rviz
 	  */
 	  std::vector<pcl::PointIndices>::const_iterator it;
-	  //std::vector<int>::const_iterator pit;
 	  velodyne_detect_person::pointCloudVector clusterPointClouds;
 	  
 	  for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-                pcl::copyPointCloud (*filteredInputPclCloud, it->indices, *cloud_cluster);
-		//for(pit = it->indices.begin(); pit != it->indices.end(); pit++) {
-		//  cloud_cluster->points.push_back(filteredInputPclCloud->points[*pit]);    
-		//}
-		pcl::toROSMsg (*cloud_cluster , *auxiliarCluster);
-		auxiliarCluster->header.frame_id = "/velodyne";
-	  	auxiliarCluster->header.stamp = ros::Time::now();
-		clusterPointClouds.pointCloudVector.push_back(*auxiliarCluster);
-		
-		*clustersCloud += *cloud_cluster;
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+		  pcl::copyPointCloud (*filteredInputPclCloud, it->indices, *cloud_cluster);
+			pcl::toROSMsg (*cloud_cluster , *auxiliarCluster);
+			auxiliarCluster->header.frame_id = "/velodyne";
+			auxiliarCluster->header.stamp = ros::Time::now();
+			clusterPointClouds.pointCloudVector.push_back(*auxiliarCluster);
+			*clustersCloud += *cloud_cluster;
 	  }
 	 
 	  pcl::toROSMsg (*clustersCloud , *clustersCloudRos);
