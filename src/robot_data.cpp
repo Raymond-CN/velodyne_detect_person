@@ -29,7 +29,7 @@ void AriaMapInformationI::robotInformation(const mapPose& m, const Ice::Current&
     
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.83, -4.75, 0.0)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
         ros::Time::now(),"world", "base"));
     
 }
