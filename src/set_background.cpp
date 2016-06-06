@@ -114,7 +114,7 @@ class SetBackground
 							
 							//If half or more of the buffer is true, then point is in background							
 							//TODO: bufferCount doesn't know the last point value (always set to 0)
-  						if(bufferCont > BUFFER_SIZE/3){
+  						if(bufferCont > BUFFER_SIZE/2){
   							publishedCloudPCL.insert(
   								publishedCloudPCL.end(), pcl::PointXYZ(
   									(((float)a-50.0)/10.0),
