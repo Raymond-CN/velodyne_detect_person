@@ -29,7 +29,7 @@ int main(int argc, char** argv){
          
     broadcaster.sendTransform(
       tf::StampedTransform(
-        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.16, 1.78, 0.873)),
+        tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.15, 1.78, 0.873)),
         ros::Time::now(),"world", "velodyne"));
         
     r.sleep();

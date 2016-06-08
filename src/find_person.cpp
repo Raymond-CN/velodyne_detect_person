@@ -142,7 +142,7 @@ class FindPerson
 					//If cluster is not the robot, the cluster is a person
 					//Save the position of the last person seen. This position will be sent to the robot
 					//TODO: Set transformation from /velodyne to /world automatically
-					if(!clusterIsRobot(centroid(0,0)-0.866,centroid(1,0)-2.74)){
+					if(!clusterIsRobot(centroid(0,0)+0.15,centroid(1,0)+1.78)){
 						*clustersCloud += auxiliarCluster;
 						personCentroid.point.x = centroid(0,0);
 						personCentroid.point.y = centroid(1,0);
@@ -175,7 +175,7 @@ class FindPerson
 			Ice::CommunicatorPtr ic;
 			try {
 				ic = Ice::initialize();
-				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 161.67.100.85 -p 10000");
+				Ice::ObjectPrx base = ic->stringToProxy("PersonPositionTopic.Endpoints:tcp -h 192.168.0.100 -p 10000");
 				PersonPositionPrx personPosition = PersonPositionPrx::checkedCast(base);
 				if (!personPosition)
 					throw "Invalid proxy";
