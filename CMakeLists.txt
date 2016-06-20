@@ -52,9 +52,13 @@ add_executable(extract_clusters src/extract_clusters.cpp)
 target_link_libraries(extract_clusters ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(extract_clusters velodyne_detect_person_generate_messages_cpp)
 
-add_executable(set_background src/set_background.cpp)
-target_link_libraries(set_background ${catkin_LIBRARIES})
-add_dependencies(set_background velodyne_detect_person_generate_messages_cpp)
+add_executable(set_static_background src/set_static_background.cpp)
+target_link_libraries(set_static_background ${catkin_LIBRARIES})
+add_dependencies(set_static_background velodyne_detect_person_generate_messages_cpp)
+
+add_executable(set_dynamic_background src/set_dynamic_background.cpp)
+target_link_libraries(set_dynamic_background ${catkin_LIBRARIES})
+add_dependencies(set_dynamic_background velodyne_detect_person_generate_messages_cpp)
 
 add_executable(find_person src/find_person.cpp ${HEADERS} ${SOURCE})
 target_link_libraries(find_person ${catkin_LIBRARIES} ${ice_lib} ${iceUtil_lib})
