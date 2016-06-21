@@ -35,6 +35,7 @@ geometry_msgs::PointStamped personCentroid;
 geometry_msgs::PointStamped personCentroidTransformed;
 MapPose detectedPersonPose;
 geometry_msgs::PointStamped robotPose;
+float topPoint, lowestPoint;
 
 
 void transformPersonPosition (const tf::TransformListener& listener){
@@ -60,12 +61,24 @@ bool clusterIsRobot(float clusterX, float clusterY){
 	//TODO: Check if robot position has value before
 	float distance;
 	distance = sqrt(pow((clusterX - robotPose.point.x),2) + pow((clusterY - robotPose.point.y),2));
-	cout << "Distance: " << distance << endl;
 	if(distance > 1){
 		return false;
 	}
 	else return true;
 }
+
+float clusterHeight(float top, float lowest){
+	return (top - lowest);	
+}
+
+bool clusterIsPerson(float height){
+	cout << "Height: " << height << endl;
+	if(1 < height	&& height < 2){
+		return true;
+	}
+	else return false;
+}
+
 
 class FindPerson
 {
@@ -115,12 +128,19 @@ class FindPerson
 		else {		
 			//For each cluster
 			for(int i = 0; i < clusterVector->pointCloudVector.size(); i++) {
+				topPoint = -100, lowestPoint = 100;
 				int clusterPoints = clusterVector->pointCloudVector[i].width;  //cluster size
 				int numCoincidentPoints = 0;
 				pcl::fromROSMsg(clusterVector->pointCloudVector[i],clusterPCL);
 				
 				//Add 1 to counter if a point is in cluster and background
 				for(int pointCluster = 0; pointCluster < clusterPoints; pointCluster++) {
+					if (clusterPCL.points[pointCluster].z > topPoint) {
+						topPoint = clusterPCL.points[pointCluster].z;
+					}
+					else if (clusterPCL.points[pointCluster].z < lowestPoint) {
+						lowestPoint = clusterPCL.points[pointCluster].z;
+					}
 					if (-5 <= clusterPCL.points[pointCluster].x &&
 				  	clusterPCL.points[pointCluster].x < 5 &&
 					  -5 <= clusterPCL.points[pointCluster].y &&
@@ -143,11 +163,13 @@ class FindPerson
 					//Save the position of the last person seen. This position will be sent to the robot
 					//TODO: Set transformation from /velodyne to /world automatically
 					if(!clusterIsRobot(centroid(0,0)+0.15,centroid(1,0)+1.78)){
-						*clustersCloud += auxiliarCluster;
-						personCentroid.point.x = centroid(0,0);
-						personCentroid.point.y = centroid(1,0);
-						personCentroid.point.z = 0;
-						personCentroid.header.stamp = ros::Time();
+						if(clusterIsPerson(clusterHeight(topPoint, lowestPoint))){	
+							*clustersCloud += auxiliarCluster;
+							personCentroid.point.x = centroid(0,0);
+							personCentroid.point.y = centroid(1,0);
+							personCentroid.point.z = 0;
+							personCentroid.header.stamp = ros::Time();
+						}
 					}
 				}
 			
