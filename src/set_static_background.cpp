@@ -178,8 +178,6 @@ class SetBackground
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "set_background");
-  std::cout << "Waiting for 10 seconds before taking the first background cloud, then taking a cloud every 5 seconds" << std::endl;
-  sleep(10);
   SetBackground setB;
 	ros::spin();
 /*
