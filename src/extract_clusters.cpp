@@ -20,7 +20,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/segmentation/region_growing.h>
 #include <pcl/features/normal_3d.h>
-
+#include <sstream>
+#include <string>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 using namespace pcl;
@@ -89,7 +90,7 @@ class ExtractClusters
 		clustering.setMinClusterSize(100);
 		clustering.setMaxClusterSize(10000);
 		clustering.setSearchMethod(tree);
-		clustering.setNumberOfNeighbours(30);
+		clustering.setNumberOfNeighbours(20);
 		clustering.setInputCloud(filteredInputPclCloud);
 		clustering.setInputNormals(normals);
 		// Set the angle in radians that will be the smoothness threshold
@@ -113,14 +114,28 @@ class ExtractClusters
 	  std::vector<pcl::PointIndices>::const_iterator it;
 	  velodyne_detect_person::pointCloudVector clusterPointClouds;
 	  
+	  int index = 0;
+	  //Creates folder to store every cluster in one image
+	  double clusterTime = (ros::Time::now()-begin).toSec();
+	  std::stringstream convertclusterTime;
+	  convertclusterTime << clusterTime;
+	  std::string foldername = "pruebas/cluster" + convertclusterTime.str();
+	  mkdir(foldername.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	  
+	  //For every cluster, store it into file and publisher structure
 	  for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 		  pcl::copyPointCloud (*filteredInputPclCloud, it->indices, *cloud_cluster);
+		  std::stringstream convertIndex;		  
+		  convertIndex << index;
+		  std::string filename = "pruebas/cluster" + convertclusterTime.str() + "/" + convertIndex.str() + ".pcd"; 
+		  pcl::io::savePCDFileASCII (filename, *cloud_cluster);
 			pcl::toROSMsg (*cloud_cluster , *auxiliarCluster);
 			auxiliarCluster->header.frame_id = "/velodyne";
 			auxiliarCluster->header.stamp = ros::Time::now();
 			clusterPointClouds.pointCloudVector.push_back(*auxiliarCluster);
 			*clustersCloud += *cloud_cluster;
+			index++;
 	  }
 	 
 	  pcl::toROSMsg (*clustersCloud , *clustersCloudRos);
