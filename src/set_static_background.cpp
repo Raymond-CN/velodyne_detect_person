@@ -76,7 +76,7 @@ class SetBackground
 			pass.filter (*filteredInputPclCloud);	
 			pcl::toPCLPointCloud2(*filteredInputPclCloud,*inputCloudPCL);	 
 	  	
-	  	/*
+	  	
 	  	//Create voxel grid
 	  	pcl::VoxelGrid<pcl::PCLPointCloud2> grid;
 	  	grid.setInputCloud (inputCloudPCL);
@@ -84,7 +84,7 @@ class SetBackground
 	  	grid.filter (*outputCloudPCL);
 	  	pcl::fromPCLPointCloud2(*outputCloudPCL,auxCloud);
 	  	pcl::toROSMsg (auxCloud, *background);
-	  	*/
+	  	
 	  	
 	  	//Add initial background cloud to prevent shadows
 	  	if(firstTime){
