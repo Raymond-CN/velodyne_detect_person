@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="velodyne_detect_person" type="background_extraction" name="background_extraction" args="0.15 100"/>
+	<node pkg="velodyne_detect_person" type="extract_clusters" name="extract_clusters" output="screen" cwd="ROS_HOME"/>
+	<node pkg="velodyne_detect_person" type="find_person" name="find_person" output="screen"/>
+	<node pkg="velodyne_detect_person" type="tf_publisher" name="tf_publisher"/>
+	<node pkg="velodyne_detect_person" type="robot_data" name="robot_data"/>
+</launch>

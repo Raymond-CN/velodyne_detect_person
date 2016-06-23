@@ -49,29 +49,13 @@ class ExtractClusters
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr inputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
 	  pcl::fromPCLPointCloud2(pcl_pc2,*inputPclCloud);
 	  
-		//Filter cloud to remove floor, ceiling and very far readings (velodyne frame)
-		pcl::PointCloud<pcl::PointXYZ>::Ptr filteredInputPclCloud(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PassThrough<pcl::PointXYZ> pass;
-
-    pass.setInputCloud (inputPclCloud);
-  	pass.setFilterFieldName ("z");
-  	pass.setFilterLimits (-0.85, 1.5);
-  	pass.setFilterLimitsNegative (false);
-  	pass.filter (*filteredInputPclCloud);
-  	
-  	pass.setInputCloud (filteredInputPclCloud);
-  	pass.setFilterFieldName ("x");
-  	pass.setFilterLimits (5.0, 20.0);
-  	pass.setFilterLimitsNegative (true);
-  	pass.filter (*filteredInputPclCloud);
-	  
-	  sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
+		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
 	  sensor_msgs::PointCloud2::Ptr auxiliarCluster (new sensor_msgs::PointCloud2);
 	    
 	  //KdTree object for the clustering search method 
 	  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-	  tree->setInputCloud (filteredInputPclCloud);
+	  tree->setInputCloud (inputPclCloud);
 	  
 	  //Perform clustering
 	  ros::Time begin_clustering = ros::Time::now ();
@@ -80,18 +64,18 @@ class ExtractClusters
 		
 		//Estimate the normals.		
 		pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
-		normalEstimation.setInputCloud(filteredInputPclCloud);
+		normalEstimation.setInputCloud(inputPclCloud);
 		normalEstimation.setRadiusSearch(0.03);
 		normalEstimation.setSearchMethod(tree);
 		normalEstimation.compute(*normals);
 	 
 		// Region growing clustering object.
 		pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> clustering;
-		clustering.setMinClusterSize(100);
+		clustering.setMinClusterSize(15);
 		clustering.setMaxClusterSize(10000);
 		clustering.setSearchMethod(tree);
-		clustering.setNumberOfNeighbours(20);
-		clustering.setInputCloud(filteredInputPclCloud);
+		clustering.setNumberOfNeighbours(30);
+		clustering.setInputCloud(inputPclCloud);
 		clustering.setInputNormals(normals);
 		// Set the angle in radians that will be the smoothness threshold
 		// (the maximum allowable deviation of the normals).
@@ -119,13 +103,14 @@ class ExtractClusters
 	  double clusterTime = (ros::Time::now()-begin).toSec();
 	  std::stringstream convertclusterTime;
 	  convertclusterTime << clusterTime;
+	  //TODO: Erase and create pruebas directory to remove old stored clusters. The command below only creates clusterX directory inside pruebas
 	  std::string foldername = "pruebas/cluster" + convertclusterTime.str();
 	  mkdir(foldername.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	  
 	  //For every cluster, store it into file and publisher structure
 	  for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-		  pcl::copyPointCloud (*filteredInputPclCloud, it->indices, *cloud_cluster);
+		  pcl::copyPointCloud (*inputPclCloud, it->indices, *cloud_cluster);
 		  std::stringstream convertIndex;		  
 		  convertIndex << index;
 		  std::string filename = "pruebas/cluster" + convertclusterTime.str() + "/" + convertIndex.str() + ".pcd"; 
@@ -137,6 +122,7 @@ class ExtractClusters
 			*clustersCloud += *cloud_cluster;
 			index++;
 	  }
+	  
 	 
 	  pcl::toROSMsg (*clustersCloud , *clustersCloudRos);
 	  clustersCloudRos->header.frame_id = "/velodyne";
@@ -152,7 +138,7 @@ class ExtractClusters
 	
 	ExtractClusters()
     {
-      sub = n.subscribe("velodyne_points", 1, &ExtractClusters::extractClustersCallback, this);
+      sub = n.subscribe("/velodyne_people_detection/background_extraction/cloud", 1, &ExtractClusters::extractClustersCallback, this);
 			begin = ros::Time::now();
 			n_published_msgs = 0;
     }
