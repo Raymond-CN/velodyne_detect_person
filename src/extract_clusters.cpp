@@ -22,6 +22,8 @@
 #include <pcl/features/normal_3d.h>
 #include <sstream>
 #include <string>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/radius_outlier_removal.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 using namespace pcl;
@@ -52,6 +54,24 @@ class ExtractClusters
 		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
 	  sensor_msgs::PointCloud2::Ptr auxiliarCluster (new sensor_msgs::PointCloud2);
+	  
+	  /*
+	  pcl::PassThrough<pcl::PointXYZ> pass;
+	  pass.setInputCloud (inputPclCloud);
+  	pass.setFilterFieldName ("z");
+  	pass.setFilterLimits (-1.0, 1.0);
+  	pass.setFilterLimitsNegative (false);
+  	pass.filter (*inputPclCloud);
+  	*/
+  	ROS_INFO("Points before radius outlier removal: %d ", inputPclCloud->width);
+  	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
+    outrem.setInputCloud(inputPclCloud);
+    outrem.setRadiusSearch(0.8);
+    outrem.setMinNeighborsInRadius (2);
+    outrem.filter (*inputPclCloud);
+  	ROS_INFO("Points after radius outlier removal: %d ", inputPclCloud->width);
+  	
+  	
 	    
 	  //KdTree object for the clustering search method 
 	  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
@@ -61,6 +81,18 @@ class ExtractClusters
 	  ros::Time begin_clustering = ros::Time::now ();
 	  //Object for storing the normals.
 		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+		
+		
+		ROS_INFO("Points before statistical outlier removal 1: %d ", inputPclCloud->width);
+			
+		//Perform statistical outlier removal
+		pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+		sor.setInputCloud (inputPclCloud);
+		sor.setMeanK (15);
+		sor.setStddevMulThresh (0.00000000000000000000000001);
+		sor.filter (*inputPclCloud);
+		ROS_INFO("Points after statistical outlier removal 1: %d ", inputPclCloud->width);
+		
 		
 		//Estimate the normals.		
 		pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
@@ -88,7 +120,7 @@ class ExtractClusters
 		clustering.extract(cluster_indices);
 
 		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
-		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
+		//ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
 	  
 	  
 	  /*Extract each cluster and store them in:
@@ -110,6 +142,16 @@ class ExtractClusters
 	  //For every cluster, store it into file and publisher structure
 	  for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+			ROS_INFO("Points before outlier removal 2: %d ", inputPclCloud->width);
+			
+			//Perform statistical outlier removal
+			pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+			sor.setInputCloud (inputPclCloud);
+			sor.setMeanK (15);
+			sor.setStddevMulThresh (0.00000000000000000000000001);
+			sor.filter (*inputPclCloud);
+			ROS_INFO("Points after outlier removal 2: %d ", inputPclCloud->width);
+			
 		  pcl::copyPointCloud (*inputPclCloud, it->indices, *cloud_cluster);
 		  std::stringstream convertIndex;		  
 		  convertIndex << index;
@@ -132,7 +174,7 @@ class ExtractClusters
 	  pub2.publish (*clustersCloudRos);
 		n_published_msgs++;
 		double elapsed_time = (ros::Time::now () - begin).toSec ();
-		ROS_INFO("Cluster publish freq: %f msgs/s - %d msgs in %f secs.", (float) n_published_msgs / elapsed_time, n_published_msgs, elapsed_time);
+		//ROS_INFO("Cluster publish freq: %f msgs/s - %d msgs in %f secs.", (float) n_published_msgs / elapsed_time, n_published_msgs, elapsed_time);
 
 	}
 	
