@@ -55,32 +55,27 @@ class ExtractClusters
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>);
 	  sensor_msgs::PointCloud2::Ptr auxiliarCluster (new sensor_msgs::PointCloud2);
 	  
-  	ROS_INFO("Points before radius outlier removal: %d ", inputPclCloud->width);
+	  //Perform radius outlier removal
+  	//ROS_INFO("Points before radius outlier removal: %d ", inputPclCloud->width);
   	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
     outrem.setInputCloud(inputPclCloud);
     outrem.setRadiusSearch(0.8);
     outrem.setMinNeighborsInRadius (2);
     outrem.filter (*inputPclCloud);
-  	ROS_INFO("Points after radius outlier removal: %d ", inputPclCloud->width);
-  	    
-	  //KdTree object for the clustering search method 
-	  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-	  tree->setInputCloud (inputPclCloud);
-	  
-	  //Perform clustering
-	  ros::Time begin_clustering = ros::Time::now ();
-	  //Object for storing the normals.
-		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-			
-		//Perform statistical outlier removal
+  	//ROS_INFO("Points after radius outlier removal: %d ", inputPclCloud->width);
+  	//Perform statistical outlier removal
 		pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
 		sor.setInputCloud (inputPclCloud);
 		sor.setMeanK (50);
 		sor.setStddevMulThresh (1.0);
 		sor.filter (*inputPclCloud);
-		ROS_INFO("Points after statistical outlier removal: %d \n", inputPclCloud->width);
-		
-		//Estimate the normals.		
+		//ROS_INFO("Points after statistical outlier removal: %d \n", inputPclCloud->width);
+  	    
+	  //KdTree object for the clustering search method 
+	  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+	  tree->setInputCloud (inputPclCloud);	  
+	  ros::Time begin_clustering = ros::Time::now ();
+		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);			
 		pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
 		normalEstimation.setInputCloud(inputPclCloud);
 		normalEstimation.setRadiusSearch(0.03);
@@ -106,7 +101,7 @@ class ExtractClusters
 		clustering.extract(cluster_indices);
 
 		double clustering_time = (ros::Time::now () - begin_clustering).toSec ();
-		//ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
+		ROS_INFO ("%f secs for clustering (%d clusters).", clustering_time, (int) cluster_indices.size ());
 	  
 	  
 	  /*Extract each cluster and store them in:
