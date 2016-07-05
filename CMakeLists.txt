@@ -30,8 +30,8 @@ find_package(catkin REQUIRED COMPONENTS
   PCL REQUIRED
 )
 
-add_message_files(FILES pointCloudVector.msg)
-generate_messages(DEPENDENCIES sensor_msgs)
+add_message_files(FILES pointCloudVector.msg personVector.msg)
+generate_messages(DEPENDENCIES sensor_msgs geometry_msgs)
 
 catkin_package()
 
@@ -67,3 +67,7 @@ add_dependencies(tf_publisher velodyne_detect_person_generate_messages_cpp)
 add_executable(robot_data src/robot_data.cpp ${HEADERS} ${SOURCE})
 target_link_libraries(robot_data ${catkin_LIBRARIES} ${ice_lib} ${iceUtil_lib})
 add_dependencies(robot_data velodyne_detect_person_generate_messages_cpp)
+
+add_executable(tracking src/tracking.cpp ${HEADERS} ${SOURCE})
+target_link_libraries(tracking ${catkin_LIBRARIES} ${ice_lib} ${iceUtil_lib})
+add_dependencies(tracking velodyne_detect_person_generate_messages_cpp)

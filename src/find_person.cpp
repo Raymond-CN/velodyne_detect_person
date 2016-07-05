@@ -20,6 +20,7 @@
 #include "../include/PersonPosition.h"
 #include "../include/AriaMapInformation.h"
 #include "geometry_msgs/PointStamped.h"
+#include "velodyne_detect_person/personVector.h"
 
 using namespace RoboCompPersonPosition;
 using namespace std;
@@ -69,7 +70,8 @@ float clusterHeight(float top, float lowest){
 
 bool clusterIsPerson(float height){
 	cout << "Height: " << height << endl;
-	if(1 < height	&& height < 2){
+	//TODO: Change to real height range given the distance from velodyne sensor
+	if(0.1 < height	&& height < 2){
 		return true;
 	}
 	else return false;
@@ -82,7 +84,7 @@ class FindPerson
     ros::NodeHandle n;
   public:
     ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2> ("person_cloud", 1);
-    ros::Publisher pub2 = n.advertise<geometry_msgs::PointStamped> ("person_position", 1);
+    ros::Publisher pub2 = n.advertise<velodyne_detect_person::personVector> ("person_position", 1); //TODO: Vector de posiciones
     ros::Subscriber subClusters;
     ros::Subscriber subRobotInfo;
     tf::TransformListener listener;
@@ -91,14 +93,15 @@ class FindPerson
 		//Receive data and perform the actual person detection. Lots of messages every second
 	void findPersonClustersCallback(const boost::shared_ptr<velodyne_detect_person::pointCloudVector>& clusterVector)
 	{
+		velodyne_detect_person::personVector peopleCentroids;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr clustersCloud (new pcl::PointCloud<pcl::PointXYZ>); //Contains every person cluster and is visible in rviz
 		pcl::PointCloud<pcl::PointXYZ> auxiliarCluster;
 		sensor_msgs::PointCloud2::Ptr clustersCloudRos (new sensor_msgs::PointCloud2);
-		personCentroid.point.x = 0;
-		personCentroid.point.y = 0;
 	
 		//For each cluster
 		for(int i = 0; i < clusterVector->pointCloudVector.size(); i++) {
+			personCentroid.point.x = 0;
+			personCentroid.point.y = 0;
 			topPoint = -100, lowestPoint = 100;
 			int clusterPoints = clusterVector->pointCloudVector[i].width;  //cluster size
 			pcl::fromROSMsg(clusterVector->pointCloudVector[i],clusterPCL);
@@ -126,6 +129,7 @@ class FindPerson
 					personCentroid.point.y = centroid(1,0);
 					personCentroid.point.z = 0;
 					personCentroid.header.stamp = ros::Time();
+					peopleCentroids.personVector.push_back(personCentroid);
 				}
 			}
 		
@@ -139,7 +143,7 @@ class FindPerson
 
 		//Transform position into world frame
 		transformPersonPosition(listener);
-		pub2.publish (personCentroid);
+		pub2.publish (peopleCentroids);
 		detectedPersonPose.x = personCentroidTransformed.point.x;
 		detectedPersonPose.y = personCentroidTransformed.point.y;
 		
