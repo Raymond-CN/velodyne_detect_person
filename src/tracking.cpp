@@ -39,6 +39,8 @@ using namespace std;
 geometry_msgs::PointStamped personCentroid;
 PointCloud::Ptr trackedCentroids (new PointCloud);
 
+//TODO: Add uncertainty area
+
 struct person {
 	geometry_msgs::PointStamped lastPosition; //Contains prediction after continueTracking() and observed position after update
 	geometry_msgs::PointStamped predictedPosition;
@@ -51,6 +53,7 @@ struct person {
 	bool personSeen = false;
 	int r, g, b;
 	bool validCandidate = false; //If it appears in more than 10 consecutive frames, it is considered valid (is not a puntual apparition)
+	//TODO: Add buffer with last X positions. Use weighted sum giving more importance to recent values
 };
 
 class Tracking
@@ -98,7 +101,7 @@ class Tracking
   {
   //TODO: REMOVE PERSON
   	if(personVec[index].framesNotSeen >= 50){
-  		ROS_INFO ("Candidate %d is lost", index);
+  		//ROS_INFO ("Candidate %d is lost", index);
   		return true;
   	}
   	else return false;
@@ -112,13 +115,15 @@ class Tracking
 			if(!lostPerson(i)){
 				personVec[i].predictedPosition.point.x = personVec[i].lastPosition.point.x + personVec[i].velX;
 				personVec[i].predictedPosition.point.y = personVec[i].lastPosition.point.y + personVec[i].velY;
+				ROS_INFO ("Cluster %d velocity was %f, %f, so predicted position is %f, %f", i, personVec[i].velX, personVec[i].velY, personVec[i].predictedPosition.point.x, personVec[i].predictedPosition.point.y);
 			}
 		}
   }
     	
 	void trackingCallback(const velodyne_detect_person::personVector& peoplePosition)
 	{
-		int movX, movY, realIndex;	
+		int realIndex;	
+		float movX, movY;
 		std::vector<bool> personSeen(numPeople);
 		
 		//Predict new position for each tracked person	
@@ -134,55 +139,60 @@ class Tracking
 			//Check which candidate corresponds to the person
 			realIndex = trackedPerson(peoplePosition.personVector[i]);
 			//Update
-			personSeen[realIndex] = true;
-			//TODO: movX and movY are always 0
-			movX = personVec[realIndex].lastPosition.point.x - peoplePosition.personVector[i].point.x;
-			movY = personVec[realIndex].lastPosition.point.y - peoplePosition.personVector[i].point.y;
+			personSeen[realIndex] = true;			
+			//movX = personVec[realIndex].lastPosition.point.x - peoplePosition.personVector[i].point.x;
+			//movY = personVec[realIndex].lastPosition.point.y - peoplePosition.personVector[i].point.y;
+			movX = peoplePosition.personVector[i].point.x - personVec[realIndex].lastPosition.point.x;
+			movY = peoplePosition.personVector[i].point.y - personVec[realIndex].lastPosition.point.y;
 			personVec[realIndex].lastPosition = peoplePosition.personVector[i];
 			personVec[realIndex].consecutiveFrames++;
 			personVec[realIndex].framesNotSeen = 0;
-			//TODO: This condition is true only with first cluster
-			ROS_INFO ("Candidate %d has %d consecutive frames", realIndex, personVec[realIndex].consecutiveFrames);
-			
+			//ROS_INFO ("Candidate %d has %d consecutive frames", realIndex, personVec[realIndex].consecutiveFrames);
 			if(personVec[realIndex].consecutiveFrames >= 10){
 				personVec[realIndex].validCandidate = true;
-				
 			}
 			
 			//If the person seen corresponds to a candidate
 			if(realIndex < numPeople){
-				ROS_INFO ("Cluster %d corresponds to candidate %d", i, realIndex);
+				//ROS_INFO ("Cluster %d corresponds to candidate %d", i, realIndex);
 				//Update velocity   TODO:Check if it is done correctly
-				personVec[realIndex].velX = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velX / personVec[realIndex].consecutiveFrames) + (movX / personVec[realIndex].consecutiveFrames);
-				personVec[realIndex].velY = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velY / personVec[realIndex].consecutiveFrames) + (movY / personVec[realIndex].consecutiveFrames);
-				ROS_INFO ("Cluster %d velocity is %f, %f", realIndex, personVec[realIndex].velX, personVec[realIndex].velY);
+				if (personVec[realIndex].consecutiveFrames > 1){
+					personVec[realIndex].velX = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velX / personVec[realIndex].consecutiveFrames) + (movX / personVec[realIndex].consecutiveFrames);
+					personVec[realIndex].velY = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velY / personVec[realIndex].consecutiveFrames) + (movY / personVec[realIndex].consecutiveFrames);
+				}
+				else{
+					personVec[realIndex].velX = movX;
+					personVec[realIndex].velY = movY;
+				}
+				//ROS_INFO ("Cluster %d velocity is %f, %f", realIndex, personVec[realIndex].velX, personVec[realIndex].velY);
 			}
 			else{
-				ROS_INFO ("Cluster %d is a new candidate with index %d", i, realIndex);
+				//ROS_INFO ("Cluster %d is a new candidate with index %d", i, realIndex);
 				numPeople++;
+				personSeen.push_back(true);
 			}
-			
-			for(int i = 0; i < personVec.size(); i++) {
-				//If person not seen this frame, update position with predicted position
-				if(!personSeen[i]) {
-					personVec[i].lastPosition.point.x = personVec[i].predictedPosition.point.x;
-					personVec[i].lastPosition.point.y = personVec[i].predictedPosition.point.y;
-					personVec[realIndex].consecutiveFrames = 0;
-					personVec[realIndex].framesNotSeen++;
-				}
-				//Publish every tracked person centroid
-				if(personVec[i].validCandidate){
-					pcl::PointXYZRGB point = pcl::PointXYZRGB(personVec[i].r, personVec[i].g, personVec[i].b);
-					point.x = personVec[i].lastPosition.point.x;
-					point.y = personVec[i].lastPosition.point.y;
-					point.z = 0;
-					trackedCentroids->points.push_back(point);
-				}
-				
+		} //End for each person seen
+		
+		
+		//For each candidate (seen or not)
+		for(int i = 0; i < personVec.size(); i++) {
+			//If person not seen this frame, update position with predicted position
+			if(!personSeen[i]) {
+				personVec[i].lastPosition.point.x = personVec[i].predictedPosition.point.x;
+				personVec[i].lastPosition.point.y = personVec[i].predictedPosition.point.y;
+				personVec[i].consecutiveFrames = 0;
+				personVec[i].framesNotSeen++;
 			}
-			
-			//ROS_INFO ("Cluster %d: %f, %f, %f", i, peoplePosition.personVector[i].point.x, peoplePosition.personVector[i].point.y, peoplePosition.personVector[i].point.z);
+			//Publish every tracked person centroid
+			if(personVec[i].validCandidate){
+				pcl::PointXYZRGB point = pcl::PointXYZRGB(personVec[i].r, personVec[i].g, personVec[i].b);
+				point.x = personVec[i].lastPosition.point.x;
+				point.y = personVec[i].lastPosition.point.y;
+				point.z = 0;
+				trackedCentroids->points.push_back(point);
+			}
 		}
+		
 		trackedCentroids->header.frame_id = "world";
 		//trackedCentroids->header.stamp = ros::Time::now();
   	pub.publish (trackedCentroids);
