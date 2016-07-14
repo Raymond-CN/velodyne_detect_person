@@ -31,6 +31,7 @@
 #include <pcl/features/normal_3d.h>
 #include <sstream>
 #include <string>
+#include <queue>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/radius_outlier_removal.h>
 
@@ -46,14 +47,16 @@ struct person {
 	geometry_msgs::PointStamped predictedPosition;
 	int consecutiveFrames = 0; //Number of consecutive frames in which person has been seen till last frame
 	int framesNotSeen = 0; //Number of consecutive frames in which person hasn't been seen since last apparition
-	float velX = 0.001; //TODO: Update velocity given position change, old velocity and consecutive frames
-	float velY = 0.001; //TODO: Update velocity given position change, old velocity and consecutive frames
+	float velX = 0.001; //TODO: Should be 0. Value given to avoid zero division problems
+	float velY = 0.001; //TODO: Should be 0. Value given to avoid zero division problems
 	float heading = 0.0;
 	bool lost = false;
 	bool personSeen = false;
 	int r, g, b;
 	bool validCandidate = false; //If it appears in more than 10 consecutive frames, it is considered valid (is not a puntual apparition)
 	//TODO: Add buffer with last X positions. Use weighted sum giving more importance to recent values
+	std::queue<float> bufferX;
+	std::queue<float> bufferY;
 };
 
 class Tracking
@@ -67,6 +70,43 @@ class Tracking
     std::vector<person> personVec;
     int numPeople = 0;
     
+  //TODO: If more than one cluster is in range, check which one is closer to predicted pose
+  //Associate each candidate with, at most, one cluster
+  std::vector<int> associateCandidates(const velodyne_detect_person::personVector& peoplePosition) {
+		std::vector<int> correspondenceList(personVec.size()); //correspondenceList[4] contains the cluster that corresponds to candidate 4, or -1 if any cluster corresponds
+		std::vector<bool> associatedCluster(peoplePosition.personVector.size()); //associatedCluster[2] tells if cluster 2 corresponds to any candidate. If true, this cluster must not be asocciated again
+		//Set associatedCluster to False initially
+		for(int x = 0; x < peoplePosition.personVector.size(); x++) {
+			associatedCluster[x] = false;
+		}
+  	for(int i = 0; i < personVec.size(); i++) {
+  		//Initially set correspondenceList[i] as 'no correspondence'
+  		correspondenceList[i] = -1;
+  		if(!lostPerson(i)){
+				float minimum = 9999;
+				for(int j = 0; j < peoplePosition.personVector.size(); j++) {
+					if (!associatedCluster[j]) { //If cluster j is not asociated with any candidate yet
+						//Assume that first candidate picks first, so we remove cluster from list once picked
+						//If cluster is in range and is the closer point to our prediction, set it as the closer point (minimum) and iterate
+						float dist = distance(peoplePosition.personVector[j], i);
+						if(dist < 1.5 && dist < minimum) {
+							minimum = dist;
+							correspondenceList[i] = j;
+						}
+						associatedCluster[correspondenceList[i]] = true;
+					}
+				}
+  		}
+  	}
+  	return associatedCluster;
+  }  
+    
+    
+  float calcVelocity(std::queue<float> buff){
+  	//TODO
+  	//if buffer size is still not complete, calculate velocity in a different way
+  	int size = buff.size();
+  }  
     
   int distance(geometry_msgs::PointStamped personObserved, int realIndex){
   	return sqrt( pow( (personObserved.point.x - personVec[realIndex].predictedPosition.point.x) ,2)
@@ -81,6 +121,7 @@ class Tracking
   	for(int i = 0; i < personVec.size(); i++) {
   		if(!lostPerson(i)){
 				if(distance(personObserved, i) < 1.5) {
+					//TODO: If more than one cluster is in range, check which one is closer to predicted pose
 					return i;
 				}
 			}
@@ -128,22 +169,34 @@ class Tracking
 		
 		//Predict new position for each tracked person	
 		continueTracking();
+		
+		//Associate each candidate with 1 or 0 clusters
+		std::vector<int> correspondenceList = associateCandidates(peoplePosition);
 				
 		//Set every person as not seen in this frame		
 		//std::fill(personSeen, personSeen+numPeople, false); //¿TODO?: Error: free(): invalid pointer
 		for(int i = 0; i < personSeen.size(); i++) {
 			personSeen[i] = false;
 		}
+		
 		//For each person seen
+		//TODO: Problem if two clusters are identified with the same candidate
 		for(int i = 0; i < peoplePosition.personVector.size(); i++) {
 			//Check which candidate corresponds to the person
+			//TODO: Set with correspondenceList. PROBLEM: Is a vector for candidates, not clusters
 			realIndex = trackedPerson(peoplePosition.personVector[i]);
 			//Update
-			personSeen[realIndex] = true;			
-			//movX = personVec[realIndex].lastPosition.point.x - peoplePosition.personVector[i].point.x;
-			//movY = personVec[realIndex].lastPosition.point.y - peoplePosition.personVector[i].point.y;
+			personSeen[realIndex] = true;
+			if(!personVec[realIndex].bufferX.empty()) {
+				personVec[realIndex].bufferX.pop();
+			}
+			if(!personVec[realIndex].bufferY.empty()) {
+				personVec[realIndex].bufferY.pop();
+			}
 			movX = peoplePosition.personVector[i].point.x - personVec[realIndex].lastPosition.point.x;
 			movY = peoplePosition.personVector[i].point.y - personVec[realIndex].lastPosition.point.y;
+			personVec[realIndex].bufferX.push(movX);
+			personVec[realIndex].bufferY.push(movY);
 			personVec[realIndex].lastPosition = peoplePosition.personVector[i];
 			personVec[realIndex].consecutiveFrames++;
 			personVec[realIndex].framesNotSeen = 0;
@@ -155,15 +208,11 @@ class Tracking
 			//If the person seen corresponds to a candidate
 			if(realIndex < numPeople){
 				//ROS_INFO ("Cluster %d corresponds to candidate %d", i, realIndex);
-				//Update velocity   TODO:Check if it is done correctly
-				if (personVec[realIndex].consecutiveFrames > 1){
-					personVec[realIndex].velX = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velX / personVec[realIndex].consecutiveFrames) + (movX / personVec[realIndex].consecutiveFrames);
-					personVec[realIndex].velY = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velY / personVec[realIndex].consecutiveFrames) + (movY / personVec[realIndex].consecutiveFrames);
-				}
-				else{
-					personVec[realIndex].velX = movX;
-					personVec[realIndex].velY = movY;
-				}
+				//Update velocity
+				//personVec[realIndex].velX = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velX / personVec[realIndex].consecutiveFrames) + (movX / personVec[realIndex].consecutiveFrames);
+				//personVec[realIndex].velY = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velY / personVec[realIndex].consecutiveFrames) + (movY / personVec[realIndex].consecutiveFrames);
+				personVec[realIndex].velX = calcVelocity(personVec[realIndex].bufferX);
+				personVec[realIndex].velY = calcVelocity(personVec[realIndex].bufferY);
 				//ROS_INFO ("Cluster %d velocity is %f, %f", realIndex, personVec[realIndex].velX, personVec[realIndex].velY);
 			}
 			else{
