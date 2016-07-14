@@ -35,10 +35,12 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/radius_outlier_removal.h>
 
+#define BUFFER_SIZE 30
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 using namespace std;
 geometry_msgs::PointStamped personCentroid;
 PointCloud::Ptr trackedCentroids (new PointCloud);
+std::vector<bool> associatedCluster; //associatedCluster[2] tells if cluster 2 corresponds to any candidate. If true, this cluster must not be asocciated again
 
 //TODO: Add uncertainty area
 
@@ -51,10 +53,8 @@ struct person {
 	float velY = 0.001; //TODO: Should be 0. Value given to avoid zero division problems
 	float heading = 0.0;
 	bool lost = false;
-	bool personSeen = false;
 	int r, g, b;
 	bool validCandidate = false; //If it appears in more than 10 consecutive frames, it is considered valid (is not a puntual apparition)
-	//TODO: Add buffer with last X positions. Use weighted sum giving more importance to recent values
 	std::queue<float> bufferX;
 	std::queue<float> bufferY;
 };
@@ -68,44 +68,61 @@ class Tracking
     ros::Subscriber sub;
     tf::TransformListener listener;
     std::vector<person> personVec;
-    int numPeople = 0;
     
   //TODO: If more than one cluster is in range, check which one is closer to predicted pose
   //Associate each candidate with, at most, one cluster
   std::vector<int> associateCandidates(const velodyne_detect_person::personVector& peoplePosition) {
+  	//ROS_INFO ("Garbanzos");	
 		std::vector<int> correspondenceList(personVec.size()); //correspondenceList[4] contains the cluster that corresponds to candidate 4, or -1 if any cluster corresponds
-		std::vector<bool> associatedCluster(peoplePosition.personVector.size()); //associatedCluster[2] tells if cluster 2 corresponds to any candidate. If true, this cluster must not be asocciated again
+		//ROS_INFO ("Garbanzos2");	
 		//Set associatedCluster to False initially
 		for(int x = 0; x < peoplePosition.personVector.size(); x++) {
 			associatedCluster[x] = false;
 		}
+		//ROS_INFO ("Garbanzos3");	
   	for(int i = 0; i < personVec.size(); i++) {
   		//Initially set correspondenceList[i] as 'no correspondence'
+  		//ROS_INFO ("Garbanzos3.1");	
   		correspondenceList[i] = -1;
   		if(!lostPerson(i)){
+  			//ROS_INFO ("Garbanzos3.1.1");	
 				float minimum = 9999;
 				for(int j = 0; j < peoplePosition.personVector.size(); j++) {
-					if (!associatedCluster[j]) { //If cluster j is not asociated with any candidate yet
-						//Assume that first candidate picks first, so we remove cluster from list once picked
-						//If cluster is in range and is the closer point to our prediction, set it as the closer point (minimum) and iterate
+					//ROS_INFO ("Garbanzos3.1.1.1");	
+					//Assume that first candidate picks first, so we remove cluster from list once picked
+					//If cluster is in range and is the closer point to our prediction, set it as the closer point (minimum) and iterate
+					//If cluster j is not asociated with any candidate yet
+					if (!associatedCluster[j]) { 
+						//ROS_INFO ("Garbanzos3.1.1.1.1");
 						float dist = distance(peoplePosition.personVector[j], i);
+						//ROS_INFO ("Garbanzos3.1.1.1.2");
 						if(dist < 1.5 && dist < minimum) {
+							//ROS_INFO ("Garbanzos3.1.1.1.2.1");
 							minimum = dist;
 							correspondenceList[i] = j;
+							ROS_INFO ("Candidate %i and cluster %i", i, correspondenceList[i]);
+							//ROS_INFO ("Garbanzos3.1.1.1.2.2");
 						}
-						associatedCluster[correspondenceList[i]] = true;
+						//ROS_INFO ("Garbanzos3.1.1.1.3");
+						if(correspondenceList[i] != -1) {
+							associatedCluster[correspondenceList[i]] = true;
+						}
+						//ROS_INFO ("Garbanzos3.1.1.1.4");
 					}
 				}
   		}
   	}
-  	return associatedCluster;
+  	//ROS_INFO ("Garbanzos4");
+  	return correspondenceList;
   }  
     
     
   float calcVelocity(std::queue<float> buff){
-  	//TODO
-  	//if buffer size is still not complete, calculate velocity in a different way
+  	//TODO: If buffer size is still not complete, calculate velocity in a different way
+  	//TODO: Calculate velocity
   	int size = buff.size();
+  	return 0.001;
+  	
   }  
     
   int distance(geometry_msgs::PointStamped personObserved, int realIndex){
@@ -113,29 +130,6 @@ class Tracking
   	 + pow( (personObserved.point.y - personVec[realIndex].predictedPosition.point.y) ,2) );
   } 
   
-  //Check if the person seen is already tracked
-  //Return the tracked person number, or a new number (numPeople) if it is a new person
-  int trackedPerson(geometry_msgs::PointStamped personObserved) 
-  {
-  	//Check if the person seen corresponds to any tracked person
-  	for(int i = 0; i < personVec.size(); i++) {
-  		if(!lostPerson(i)){
-				if(distance(personObserved, i) < 1.5) {
-					//TODO: If more than one cluster is in range, check which one is closer to predicted pose
-					return i;
-				}
-			}
-  	}
-  	//If the person doesn't have a correspondence, return a new person index and start tracking
-  	//Create person and set color for this person
-  	person p;
-  	srand(time(NULL));
-		p.r = rand() % 255;
-		p.g = rand() % 255;
-		p.b = rand() % 255;
-  	personVec.push_back(p);
-  	return numPeople;
-  }
   
   //Return true when a person is not seen in the last ~5 seconds (~10 frames/second) and stop tracking  
   bool lostPerson(int index) 
@@ -156,95 +150,107 @@ class Tracking
 			if(!lostPerson(i)){
 				personVec[i].predictedPosition.point.x = personVec[i].lastPosition.point.x + personVec[i].velX;
 				personVec[i].predictedPosition.point.y = personVec[i].lastPosition.point.y + personVec[i].velY;
-				ROS_INFO ("Cluster %d velocity was %f, %f, so predicted position is %f, %f", i, personVec[i].velX, personVec[i].velY, personVec[i].predictedPosition.point.x, personVec[i].predictedPosition.point.y);
+				//ROS_INFO ("Cluster %d velocity was %f, %f, so predicted position is %f, %f", i, personVec[i].velX, personVec[i].velY, personVec[i].predictedPosition.point.x, personVec[i].predictedPosition.point.y);
 			}
 		}
   }
     	
 	void trackingCallback(const velodyne_detect_person::personVector& peoplePosition)
 	{
-		int realIndex;	
 		float movX, movY;
-		std::vector<bool> personSeen(numPeople);
+		associatedCluster.clear();
+		associatedCluster.reserve(peoplePosition.personVector.size()); 
 		
 		//Predict new position for each tracked person	
 		continueTracking();
 		
 		//Associate each candidate with 1 or 0 clusters
 		std::vector<int> correspondenceList = associateCandidates(peoplePosition);
-				
-		//Set every person as not seen in this frame		
-		//std::fill(personSeen, personSeen+numPeople, false); //¿TODO?: Error: free(): invalid pointer
-		for(int i = 0; i < personSeen.size(); i++) {
-			personSeen[i] = false;
-		}
-		
-		//For each person seen
-		//TODO: Problem if two clusters are identified with the same candidate
-		for(int i = 0; i < peoplePosition.personVector.size(); i++) {
-			//Check which candidate corresponds to the person
-			//TODO: Set with correspondenceList. PROBLEM: Is a vector for candidates, not clusters
-			realIndex = trackedPerson(peoplePosition.personVector[i]);
-			//Update
-			personSeen[realIndex] = true;
-			if(!personVec[realIndex].bufferX.empty()) {
-				personVec[realIndex].bufferX.pop();
-			}
-			if(!personVec[realIndex].bufferY.empty()) {
-				personVec[realIndex].bufferY.pop();
-			}
-			movX = peoplePosition.personVector[i].point.x - personVec[realIndex].lastPosition.point.x;
-			movY = peoplePosition.personVector[i].point.y - personVec[realIndex].lastPosition.point.y;
-			personVec[realIndex].bufferX.push(movX);
-			personVec[realIndex].bufferY.push(movY);
-			personVec[realIndex].lastPosition = peoplePosition.personVector[i];
-			personVec[realIndex].consecutiveFrames++;
-			personVec[realIndex].framesNotSeen = 0;
-			//ROS_INFO ("Candidate %d has %d consecutive frames", realIndex, personVec[realIndex].consecutiveFrames);
-			if(personVec[realIndex].consecutiveFrames >= 10){
-				personVec[realIndex].validCandidate = true;
-			}
-			
-			//If the person seen corresponds to a candidate
-			if(realIndex < numPeople){
-				//ROS_INFO ("Cluster %d corresponds to candidate %d", i, realIndex);
-				//Update velocity
-				//personVec[realIndex].velX = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velX / personVec[realIndex].consecutiveFrames) + (movX / personVec[realIndex].consecutiveFrames);
-				//personVec[realIndex].velY = ( (personVec[realIndex].consecutiveFrames-1) * personVec[realIndex].velY / personVec[realIndex].consecutiveFrames) + (movY / personVec[realIndex].consecutiveFrames);
-				personVec[realIndex].velX = calcVelocity(personVec[realIndex].bufferX);
-				personVec[realIndex].velY = calcVelocity(personVec[realIndex].bufferY);
-				//ROS_INFO ("Cluster %d velocity is %f, %f", realIndex, personVec[realIndex].velX, personVec[realIndex].velY);
-			}
-			else{
-				//ROS_INFO ("Cluster %d is a new candidate with index %d", i, realIndex);
-				numPeople++;
-				personSeen.push_back(true);
-			}
-		} //End for each person seen
-		
-		
-		//For each candidate (seen or not)
+		//ROS_INFO ("Perro");
+		//For each candidate
 		for(int i = 0; i < personVec.size(); i++) {
-			//If person not seen this frame, update position with predicted position
-			if(!personSeen[i]) {
-				personVec[i].lastPosition.point.x = personVec[i].predictedPosition.point.x;
-				personVec[i].lastPosition.point.y = personVec[i].predictedPosition.point.y;
+			//ROS_INFO ("Perro2.1");
+			//Remove oldest element if maximum buffer size is reached
+			if(!personVec[i].bufferX.size() == BUFFER_SIZE) {
+				personVec[i].bufferX.pop();
+			}
+			if(!personVec[i].bufferY.size() == BUFFER_SIZE) {
+				personVec[i].bufferY.pop();
+			}
+			//ROS_INFO ("Perro2.2");
+			//If candidate not seen in this frame, set new position as predictedPosition
+			if(correspondenceList[i] == -1) {
+				//ROS_INFO ("Perro2.2.1");
+				//Calculate predicted movement since last frame
+				movX = personVec[i].predictedPosition.point.x - personVec[i].lastPosition.point.x;
+				movY = personVec[i].predictedPosition.point.x - personVec[i].lastPosition.point.y;
+				personVec[i].bufferX.push(movX);
+				personVec[i].bufferY.push(movY);
+				personVec[i].lastPosition = personVec[i].predictedPosition;
 				personVec[i].consecutiveFrames = 0;
 				personVec[i].framesNotSeen++;
+				//ROS_INFO ("Perro2.2.2");
+			}			
+			else {
+				ROS_INFO ("I am candidate %i and cluster %i is associated", i, correspondenceList[i]);
+				//ROS_INFO ("Perro2.3.1");	
+				//Calculate movement since last frame //TODO: What if last frame was predicted?
+				movX = peoplePosition.personVector[correspondenceList[i]].point.x - personVec[i].lastPosition.point.x;
+				movY = peoplePosition.personVector[correspondenceList[i]].point.y - personVec[i].lastPosition.point.y;
+				personVec[i].bufferX.push(movX);
+				personVec[i].bufferY.push(movY);
+				personVec[i].lastPosition = peoplePosition.personVector[correspondenceList[i]];
+				personVec[i].consecutiveFrames++;
+				personVec[i].framesNotSeen = 0;
+				ROS_INFO ("Consecutive Frames: %i", personVec[i].consecutiveFrames);	
+				if(personVec[i].consecutiveFrames >= 10){
+					personVec[i].validCandidate = true;
+					//ROS_INFO ("Perro2.3.2.1");	
+				}
+				//ROS_INFO ("Perro2.3.3");	
 			}
+			//ROS_INFO ("Perro2.4");	
+			//Update velocity
+			personVec[i].velX = calcVelocity(personVec[i].bufferX);
+			personVec[i].velY = calcVelocity(personVec[i].bufferY);
+			//ROS_INFO ("Perro2.5");	
 			//Publish every tracked person centroid
 			if(personVec[i].validCandidate){
+				//ROS_INFO ("Perro2.5.1");	
 				pcl::PointXYZRGB point = pcl::PointXYZRGB(personVec[i].r, personVec[i].g, personVec[i].b);
 				point.x = personVec[i].lastPosition.point.x;
 				point.y = personVec[i].lastPosition.point.y;
 				point.z = 0;
 				trackedCentroids->points.push_back(point);
+				//ROS_INFO ("Perro2.5.2");	
 			}
+			//ROS_INFO ("Perro2.6");
 		}
 		
+		//ROS_INFO ("Publish");
 		trackedCentroids->header.frame_id = "world";
 		//trackedCentroids->header.stamp = ros::Time::now();
-  	pub.publish (trackedCentroids);
+		pub.publish (trackedCentroids);
+		
+		//ROS_INFO ("Gato");		
+		//For each person seen, start tracking clusters without correspondence
+		for(int i = 0; i < peoplePosition.personVector.size(); i++) {
+			//ROS_INFO ("Gato2");	
+			if(!associatedCluster[i]){
+				//ROS_INFO ("Gato2.1");	
+				person p;
+				srand(time(NULL));
+				p.r = rand() % 255;
+				p.g = rand() % 255;
+				p.b = rand() % 255;
+				p.lastPosition = peoplePosition.personVector[i];
+				p.consecutiveFrames++;
+				p.framesNotSeen = 0;				
+				personVec.push_back(p);
+				//ROS_INFO ("Gato2.2");	
+			}
+		}
+		//ROS_INFO ("Fin");	
 		
 	}
 	
