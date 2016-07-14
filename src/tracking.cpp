@@ -119,9 +119,22 @@ class Tracking
     
   float calcVelocity(std::queue<float> buff){
   	//TODO: If buffer size is still not complete, calculate velocity in a different way
-  	//TODO: Calculate velocity
+  	//TODO: Still wrong :D
+  	std::queue<float> buffCopy = buff;
   	int size = buff.size();
-  	return 0.001;
+  	float sum = 0; //Sum of indexes (if 30 elements, sum = 465)
+  	float velAverage = 0; //Weighted sum of velocities
+  	for(int i = 0; i < size; i++){
+  		sum += i+1;
+  	}
+  	int i = 0;
+  	while(buffCopy.size() > 0){
+  		velAverage += (((i+1) * buffCopy.front()) / sum);
+  		buffCopy.pop();
+  		i++;
+  	}
+  	ROS_INFO("velAverage = %f", velAverage);
+  	return velAverage;
   	
   }  
     
