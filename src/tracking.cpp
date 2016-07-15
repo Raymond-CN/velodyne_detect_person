@@ -80,6 +80,8 @@ class Tracking
 			associatedCluster[x] = false;
 		}
 		//ROS_INFO ("Garbanzos3");	
+		//ROS_INFO("Clusters: %i", peoplePosition.personVector.size());
+		//ROS_INFO("Candidates: %i", personVec.size());
   	for(int i = 0; i < personVec.size(); i++) {
   		//Initially set correspondenceList[i] as 'no correspondence'
   		//ROS_INFO ("Garbanzos3.1");	
@@ -94,13 +96,15 @@ class Tracking
 					//If cluster j is not asociated with any candidate yet
 					if (!associatedCluster[j]) { 
 						//ROS_INFO ("Garbanzos3.1.1.1.1");
+						ROS_INFO ("Candidate %i and cluster %i", i, j);
 						float dist = distance(peoplePosition.personVector[j], i);
+						//ROS_INFO("distance candidate %i and cluster %i: %f", i, j, dist);
 						//ROS_INFO ("Garbanzos3.1.1.1.2");
 						if(dist < 1.5 && dist < minimum) {
 							//ROS_INFO ("Garbanzos3.1.1.1.2.1");
 							minimum = dist;
 							correspondenceList[i] = j;
-							ROS_INFO ("Candidate %i and cluster %i", i, correspondenceList[i]);
+							//ROS_INFO ("Candidate %i and cluster %i", i, correspondenceList[i]);
 							//ROS_INFO ("Garbanzos3.1.1.1.2.2");
 						}
 						//ROS_INFO ("Garbanzos3.1.1.1.3");
@@ -129,16 +133,22 @@ class Tracking
   	}
   	int i = 0;
   	while(buffCopy.size() > 0){
+  		//ROS_INFO("Buffer %i: %f", i, buffCopy.front());
   		velAverage += (((i+1) * buffCopy.front()) / sum);
   		buffCopy.pop();
   		i++;
   	}
-  	ROS_INFO("velAverage = %f", velAverage);
+  	//ROS_INFO("velAverage = %f", velAverage);
   	return velAverage;
   	
   }  
     
+  //TODO: Probably wrong. Gives distances of 40m in seconds  
   int distance(geometry_msgs::PointStamped personObserved, int realIndex){
+  	//ROS_INFO("Cluster: %f, %f", personObserved.point.x, personObserved.point.y);
+  	//ROS_INFO("Predicted candidate: %f, %f", personVec[realIndex].predictedPosition.point.x, personVec[realIndex].predictedPosition.point.y);
+  	//ROS_INFO("Distance: %f", sqrt( pow( (personObserved.point.x - personVec[realIndex].predictedPosition.point.x) ,2)
+  	 //+ pow( (personObserved.point.y - personVec[realIndex].predictedPosition.point.y) ,2) ));
   	return sqrt( pow( (personObserved.point.x - personVec[realIndex].predictedPosition.point.x) ,2)
   	 + pow( (personObserved.point.y - personVec[realIndex].predictedPosition.point.y) ,2) );
   } 
@@ -161,8 +171,11 @@ class Tracking
   	//For each stored person, calculate predicted position given old position and velocity model
 		for(int i = 0; i < personVec.size(); i++) {
 			if(!lostPerson(i)){
+				ROS_INFO("Velocity: %f, %f", personVec[i].velX, personVec[i].velY);
+				ROS_INFO("Last position: %f, %f", personVec[i].lastPosition.point.x, personVec[i].lastPosition.point.y);				
 				personVec[i].predictedPosition.point.x = personVec[i].lastPosition.point.x + personVec[i].velX;
 				personVec[i].predictedPosition.point.y = personVec[i].lastPosition.point.y + personVec[i].velY;
+				ROS_INFO("Predicted position: %f, %f", personVec[i].predictedPosition.point.x, personVec[i].predictedPosition.point.y);
 				//ROS_INFO ("Cluster %d velocity was %f, %f, so predicted position is %f, %f", i, personVec[i].velX, personVec[i].velY, personVec[i].predictedPosition.point.x, personVec[i].predictedPosition.point.y);
 			}
 		}
@@ -196,7 +209,7 @@ class Tracking
 				//ROS_INFO ("Perro2.2.1");
 				//Calculate predicted movement since last frame
 				movX = personVec[i].predictedPosition.point.x - personVec[i].lastPosition.point.x;
-				movY = personVec[i].predictedPosition.point.x - personVec[i].lastPosition.point.y;
+				movY = personVec[i].predictedPosition.point.y - personVec[i].lastPosition.point.y;
 				personVec[i].bufferX.push(movX);
 				personVec[i].bufferY.push(movY);
 				personVec[i].lastPosition = personVec[i].predictedPosition;
@@ -210,6 +223,8 @@ class Tracking
 				//Calculate movement since last frame //TODO: What if last frame was predicted?
 				movX = peoplePosition.personVector[correspondenceList[i]].point.x - personVec[i].lastPosition.point.x;
 				movY = peoplePosition.personVector[correspondenceList[i]].point.y - personVec[i].lastPosition.point.y;
+				//ROS_INFO("MovX for candidate %i is %f", i, movX);
+				//ROS_INFO("MovY for candidate %i is %f", i, movY);
 				personVec[i].bufferX.push(movX);
 				personVec[i].bufferY.push(movY);
 				personVec[i].lastPosition = peoplePosition.personVector[correspondenceList[i]];
