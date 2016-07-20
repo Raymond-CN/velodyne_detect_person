@@ -49,8 +49,8 @@ struct person {
 	geometry_msgs::PointStamped predictedPosition;
 	int consecutiveFrames = 0; //Number of consecutive frames in which person has been seen till last frame
 	int framesNotSeen = 0; //Number of consecutive frames in which person hasn't been seen since last apparition
-	float velX = 0.001; //TODO: Should be 0. Value given to avoid zero division problems
-	float velY = 0.001; //TODO: Should be 0. Value given to avoid zero division problems
+	float velX = 0.001;
+	float velY = 0.001;
 	float heading = 0.0;
 	bool lost = false;
 	int r, g, b;
@@ -118,7 +118,7 @@ class Tracking
   }  
     
   //Returns distance between two points
-  int distance(geometry_msgs::PointStamped personObserved, int realIndex){
+  float distance(geometry_msgs::PointStamped personObserved, int realIndex){
   	return sqrt( pow( (personObserved.point.x - personVec[realIndex].predictedPosition.point.x) ,2)
   	 + pow( (personObserved.point.y - personVec[realIndex].predictedPosition.point.y) ,2) );
   } 
